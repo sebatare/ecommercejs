@@ -2,31 +2,31 @@ name: Deploy to Raspberry Pi
 
 on:
   push:
-    branches: [ main ]  # Cambia la rama si usas otra
+    branches: [main] # Cambia la rama si usas otra
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        cat > ~/.ssh/github_deploy_key <<EOF
-${{ secrets.DEPLOY_KEY }}
-EOF
-        chmod 600 ~/.ssh/github_deploy_key
-        ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/github_deploy_key <<EOF
+          ${{ secrets.DEPLOY_KEY }}
+          EOF
+          chmod 600 ~/.ssh/github_deploy_key
+          ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
 
-    - name: Deploy to Raspberry Pi
-      run: |
-        ssh -i ~/.ssh/github_deploy_key sebastian@192.168.100.51 << 'EOF'
-          cd /home/sebastian/ecommercejs/backend/src
-          git pull
-          npm ci
-          npm run build || true
-          pm2 restart app || node main.js &
-        EOF
+      - name: Deploy to Raspberry Pi
+        run: |
+          ssh -i ~/.ssh/github_deploy_key sebastian@192.168.100.51 << 'EOF'
+            cd /home/sebastian/ecommercejs/backend/src
+            git pull
+            npm ci
+            npm run build || true
+            pm2 restart app || node main.js &
+          EOF
