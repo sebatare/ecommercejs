@@ -2,33 +2,38 @@ name: Deploy to Raspberry Pi
 
 on:
   push:
-    branches: [ main ]  # Cambia si usas otra rama
+    branches: [main] # Cambia si usas otra rama
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        # Crear el archivo de clave privada con el secreto, sin espacios de indentación
-        cat > ~/.ssh/github_deploy_key <<EOF
-        ${{ secrets.DEPLOY_KEY }}
-        EOF
-        chmod 600 ~/.ssh/github_deploy_key
-        ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
-        ls -la ~/.ssh  # Opcional: ver archivos creados para debug
+      - name: Verificar clave privada cargada
+        run: |
+          echo "Longitud de clave:" $(wc -c < ~/.ssh/github_deploy_key)
+          head -n 2 ~/.ssh/github_deploy_key | sed 's/./*/g'
 
-    - name: Deploy to Raspberry Pi
-      run: |
-        ssh -i ~/.ssh/github_deploy_key sebastian@192.168.100.51 << 'EOF'
-          cd /home/sebastian/ecommercejs/backend/src
-          git pull
-          npm ci
-          npm run build || true
-          pm2 restart app || node main.js &
-        EOF
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          # Crear el archivo de clave privada con el secreto, sin espacios de indentación
+          cat > ~/.ssh/github_deploy_key <<EOF
+          ${{ secrets.DEPLOY_KEY }}
+          EOF
+          chmod 600 ~/.ssh/github_deploy_key
+          ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
+          ls -la ~/.ssh  # Opcional: ver archivos creados para debug
+
+      - name: Deploy to Raspberry Pi
+        run: |
+          ssh -i ~/.ssh/github_deploy_key sebastian@192.168.100.51 << 'EOF'
+            cd /home/sebastian/ecommercejs/backend/src
+            git pull
+            npm ci
+            npm run build || true
+            pm2 restart app || node main.js &
+          EOF
