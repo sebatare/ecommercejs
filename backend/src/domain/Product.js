@@ -3,12 +3,12 @@ class Product {
         if (!name) throw new Error('Product name is required');
         if (price < 0) throw new Error('Price cannot be negative');
 
-        this.id = id ?? null;
+        this.id = id;
         this.name = name;
-        this.description = description ?? '';
-        this.createdAt = createdAt ?? new Date();
+        this.description = description;
+        this.createdAt = new Date();
         this.price = price;
-        this.stock = stock ?? 0;
+        this.stock = stock;
     }
 }
 
