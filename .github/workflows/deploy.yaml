@@ -16,6 +16,14 @@ jobs:
         run: |
           echo "Longitud de clave:" $(wc -c < ~/.ssh/github_deploy_key)
           head -n 2 ~/.ssh/github_deploy_key | sed 's/./*/g'
+      - name: Test secret está presente
+        run: |
+          if [ -z "${{ secrets.DEPLOY_KEY }}" ]; then
+            echo "❌ Secreto vacío"
+            exit 1
+          else
+            echo "✅ Secreto presente"
+          fi
 
       - name: Set up SSH
         run: |
