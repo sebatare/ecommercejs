@@ -24,17 +24,17 @@ jobs:
           else
             echo "✅ Secreto presente"
           fi
-
+      - name: Verifica clave escrita
+        run: |
+          echo "Primeras líneas de la clave privada:"
+          head -n 5 ~/.ssh/github_deploy_key
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          # Crear el archivo de clave privada con el secreto, sin espacios de indentación
-          cat > ~/.ssh/github_deploy_key <<EOF
-          ${{ secrets.DEPLOY_KEY }}
-          EOF
+          echo "${{ secrets.DEPLOY_KEY }}" | tr -d '\r' > ~/.ssh/github_deploy_key
           chmod 600 ~/.ssh/github_deploy_key
           ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
-          ls -la ~/.ssh  # Opcional: ver archivos creados para debug
+          ls -la ~/.ssh
 
       - name: Deploy to Raspberry Pi
         run: |
