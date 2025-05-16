@@ -14,6 +14,9 @@ jobs:
 
       - name: Set up SSH
         run: |
+          echo "----- INICIO CLAVE SECRETA -----"
+          echo "${{ secrets.DEPLOY_KEY }}"
+          echo "----- FIN CLAVE SECRETA -----"
           mkdir -p ~/.ssh
           cat > ~/.ssh/github_deploy_key <<EOF
           ${{ secrets.DEPLOY_KEY }}
