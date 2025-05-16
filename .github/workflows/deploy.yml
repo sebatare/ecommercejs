@@ -15,7 +15,7 @@ jobs:
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/github_deploy_key
+        printf "%s" "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/github_deploy_key
         chmod 600 ~/.ssh/github_deploy_key
         ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
 
