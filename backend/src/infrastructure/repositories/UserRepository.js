@@ -14,6 +14,10 @@ class UserRepository {
         );
         return new User(res.rows[0]);
     }
+    async findAll() {
+        const res = await pool.query('SELECT * FROM users ORDER BY id');
+        return res.rows.map(row => new User(row));
+    }
 }
 
 module.exports = UserRepository;
