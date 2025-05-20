@@ -6,7 +6,7 @@ class RoleService extends BaseService {
     }
 
     create(data) {
-       
+
         return this.repository.create(data);
     }
 
@@ -16,4 +16,4 @@ class RoleService extends BaseService {
 }
 
 module.exports = RoleService;
-//cambiaso
+//cambia
