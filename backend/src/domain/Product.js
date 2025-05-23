@@ -10,6 +10,17 @@ class Product {
         this.price = price;
         this.stock = stock;
     }
+
+
+    //DISPONIBILIDAD DE PRODUCTO
+    isAvailable() {
+        return this.stock > 0;
+    }
+
+    //APLICAR DESCUENTO
+    applyDiscount(percent) {
+        return this.price * (1 - percent / 100);
+    }
 }
 
 module.exports = Product;

@@ -15,6 +15,12 @@ const RoleService = require('./application/services/RoleService');
 const RoleRepository = require('./infrastructure/repositories/RoleRepository');
 const createRoleRouter = require('./infrastructure/routers/RoleRouter');
 
+// CART INJECTION
+
+const CartService = require('./application/services/CartService');
+const CartRepository = require('./infrastructure/repositories/CartRepository');
+
+const createCartRouter = require('./infrastructure/routers/CartRouter');
 
 
 const app = express();
@@ -28,10 +34,13 @@ app.use('/api/products', authenticate, createProductRouter(productService));
 const authService = new AuthService(new UserRepository());
 app.use('/api/auth', createAuthRouter(authService));
 
-const userService = new UserRepository();
-app.use('/api/users', createUserRouter(userService));
+const userRepository = new UserRepository();
+app.use('/api/users', createUserRouter(userRepository));
 
 const roleService = new RoleService(new RoleRepository());
 app.use('/api/roles', createRoleRouter(roleService));
+
+const cartService = new CartService(new CartRepository());
+app.use('/api/cart', authenticate, createCartRouter(cartService));
 
 app.listen(3001, () => console.log('Servidor en http://localhost:3001'));

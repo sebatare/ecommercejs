@@ -6,7 +6,7 @@ class RoleService extends BaseService {
     }
 
     create(data) {
-
+       
         return this.repository.create(data);
     }
 

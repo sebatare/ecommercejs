@@ -1,7 +1,10 @@
 const pool = require('../db/pool');
 const User = require('./../../domain/User');
-
-class UserRepository {
+const BaseRepository = require('./BaseRepository');
+class UserRepository extends BaseRepository {
+    constructor() {
+        super('users', row => new User(row));
+    }
     async findByEmail(email) {
         const res = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         return res.rows[0] ? new User(res.rows[0]) : null;
@@ -14,9 +17,9 @@ class UserRepository {
         );
         return new User(res.rows[0]);
     }
+
     async findAll() {
-        const res = await pool.query('SELECT * FROM users ORDER BY id');
-        return res.rows.map(row => new User(row));
+        return await super.findAll();
     }
 }
 
