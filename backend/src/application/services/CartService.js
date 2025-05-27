@@ -4,39 +4,52 @@ class CartService {
         this.cartRepository = cartRepository;
     }
 
-    async createCart(userId) {
+    async createCart(userId){
         if (!userId) {
-            throw new NotAuthorizedError();
+            throw new NotAuthorizedError('No se proporcionó un ID de usuario');
         }
-        return await this.cartRepository.createCart(userId);
+        try {
+            return await this.cartRepository.createCart(userId);
+        } catch (error) {
+            throw new Error('Error al crear el carrito: ' + error.message);
+        }
+    }
+    //por ahora sin authentication
+    async getCart(){
+        try {
+            return await this.cartRepository.getCart();
+        } catch (error) {
+            throw new Error('Error al obtener el carrito: ' + error.message);
+        }
     }
 
-    async updateCartItem(cartId, productId, delta) {
-        const quantity = await this.cartRepository.updateCart(cartId, productId, delta);
+    async getAllCarts() {
+        try {
+            return await this.cartRepository.getAllCarts();
+        } catch (error) {
+            throw new Error('Error al obtener los carritos: ' + error.message);
+        }
+    }
 
-        // Regla de negocio: si la cantidad llega a 0 o menos, eliminar el item
-        if (quantity <= 0) {
-            await this.cartRepository.removeItem(cartId, productId);
+    async updateItems(cartId, updates) {
+        if (!Array.isArray(updates) || updates.length === 0) {
+            throw new Error('Debe proporcionar una lista de productos a actualizar');
         }
 
-        return quantity;
-    }
-
-    async removeItem(itemId) {
-        return await this.cartRepository.removeItem(itemId);
-    }
-
-    async clearCart(cartId) {
-        return await this.cartRepository.clearCart(cartId);
-    }
-
-    async getCartByUserId(userId) {
-        const cart = await this.cartRepository.getCartByUserId(userId);
-        if (!cart) {
-            throw new NotFoundError(`Carrito de compras para el usuario ID: ${userId} no encontrado`);
+        // Validaciones de negocio opcionales:
+        for (const { productId, delta } of updates) {
+            if (!Number.isInteger(productId) || !Number.isFinite(delta)) {
+                throw new Error('Datos de producto inválidos');
+            }
         }
-        return cart;
+
+        await this.cartRepository.bulkUpdateCartItems(cartId, updates);
     }
+
+    async clearCart(userId) {
+        return await this.cartRepository.clearCart(userId);
+    }
+
 }
 
 module.exports = CartService;
