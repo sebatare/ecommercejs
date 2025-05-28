@@ -1,23 +1,31 @@
 const NotAuthorizedError = require('../../domain/errors/NotAuthorizedError');
+
+const UniqueConstraintError = require('../../domain/errors/UniqueConstraintError');
+
 class CartService {
     constructor(cartRepository) {
         this.cartRepository = cartRepository;
     }
 
-    async createCart(userId){
+    async createCart(userId) {
         if (!userId) {
-            throw new NotAuthorizedError('No se proporcionó un ID de usuario');
+            throw new Error('No se proporcionó un ID de usuario');
         }
+
         try {
             return await this.cartRepository.createCart(userId);
         } catch (error) {
-            throw new Error('Error al crear el carrito: ' + error.message);
+            if (error.code === '23505') {
+                throw new Error('Ya existe un carrito para este usuario');
+            }
+            throw new Error('Error inesperado al crear el carrito');
         }
     }
+
     //por ahora sin authentication
-    async getCart(){
+    async getCart(userId) {
         try {
-            return await this.cartRepository.getCart();
+            return await this.cartRepository.getCart(userId);
         } catch (error) {
             throw new Error('Error al obtener el carrito: ' + error.message);
         }
@@ -31,19 +39,12 @@ class CartService {
         }
     }
 
-    async updateItems(cartId, updates) {
-        if (!Array.isArray(updates) || updates.length === 0) {
-            throw new Error('Debe proporcionar una lista de productos a actualizar');
+    async updateItems(cartId, updates) {// updates: // [{ productId, quantity }]
+        if(!cartId){
+            throw Error('No se proporcionó un ID de carrito');
         }
 
-        // Validaciones de negocio opcionales:
-        for (const { productId, delta } of updates) {
-            if (!Number.isInteger(productId) || !Number.isFinite(delta)) {
-                throw new Error('Datos de producto inválidos');
-            }
-        }
-
-        await this.cartRepository.bulkUpdateCartItems(cartId, updates);
+        await this.cartRepository.updateCartItems(cartId, updates);
     }
 
     async clearCart(userId) {

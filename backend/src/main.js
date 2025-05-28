@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-
+// Error handling middleware
+const errorHandler = require('./middleware/errorHandler');
 const ProductService = require('./application/services/ProductService');
 const ProductRepository = require('./infrastructure/repositories/ProductRepository');
 const createProductRouter = require('./infrastructure/routers/ProductRouter');
@@ -29,7 +30,7 @@ app.use(express.json());
 
 
 const productService = new ProductService(new ProductRepository());
-app.use('/api/products', authenticate, createProductRouter(productService));
+app.use('/api/products', createProductRouter(productService));
 
 const authService = new AuthService(new UserRepository());
 app.use('/api/auth', createAuthRouter(authService));
@@ -42,5 +43,9 @@ app.use('/api/roles', createRoleRouter(roleService));
 
 const cartService = new CartService(new CartRepository());
 app.use('/api/cart', authenticate, createCartRouter(cartService));
+
+
+// Middleware de manejo de errores
+app.use(errorHandler);
 
 app.listen(3001, () => console.log('Servidor en http://localhost:3001'));

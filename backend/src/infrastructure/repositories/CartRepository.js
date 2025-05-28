@@ -1,7 +1,6 @@
 const pool = require('../db/pool');
 const Cart = require('../../domain/Cart');
 const CartItem = require('../../domain/CartItem');
-const DBError = require('../../domain/errors/DBError');
 
 
 class CartRepository {
@@ -16,8 +15,38 @@ class CartRepository {
             );
             return new Cart(res.rows[0]);
         } catch (error) {
-            throw new DBError('Error al crear el carrito: ' + error.message);
+            throw error; // No lo envolvemos
         }
+    }
+
+    // Obtiene el carrito y sus items para un usuario
+    async getCart(userId) {
+        // Primero obtenemos el carrito del usuario
+        const cartRes = await pool.query(
+            'SELECT * FROM carts WHERE user_id = $1',
+            [userId]
+        );
+        if (cartRes.rows.length === 0) {
+            throw new Error('Usuario no tiene un carrito activo');
+        }
+        const cart = new Cart(cartRes.rows[0]);
+
+        // Ahora obtenemos los items del carrito
+        const itemsRes = await pool.query(
+            `SELECT ci.product_id, ci.quantity, p.name as product_name
+             FROM cart_items ci
+             JOIN products p ON ci.product_id = p.id
+             WHERE ci.cart_id = $1`,
+            [cart.id]
+        );
+        // Mapear para incluir nombre y cantidad
+        cart.items = itemsRes.rows.map(row => ({
+            productId: row.product_id,
+            productName: row.product_name,
+            quantity: row.quantity
+        }));
+
+        return cart;
     }
 
     async getAllCarts() {
@@ -28,25 +57,37 @@ class CartRepository {
     }
 
     //UPDATE ITEM QUANTITY IN CART
-    async updateCartItem(cartId, items) {
+    async updateCartItems(cartId, items) {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
-            for (const { productId, delta } of items) {
-                // Paso 1: INSERT o UPDATE
-                await client.query(`
-        INSERT INTO cart_items (cart_id, product_id, quantity)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (cart_id, product_id)
-        DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity
-      `, [cartId, productId, delta]);
+            // 1. Elimina los productos que NO están en el array recibido
+            const productIds = items.map(item => item.productId);
+            if (productIds.length > 0) {
+                await client.query(
+                    `DELETE FROM cart_items
+                     WHERE cart_id = $1
+                     AND product_id NOT IN (${productIds.map((_, i) => `$${i + 2}`).join(',')})`,
+                    [cartId, ...productIds]
+                );
+            } else {
+                // Si no hay productos, elimina todos los items del carrito
+                await client.query(
+                    `DELETE FROM cart_items WHERE cart_id = $1`,
+                    [cartId]
+                );
+            }
 
-                // Paso 2: Eliminar si cantidad final es <= 0
+            // 2. Inserta o actualiza los productos recibidos
+            for (const { productId, quantity } of items) {
+                if (quantity <= 0) continue; // Opcional: ignora cantidades no válidas
                 await client.query(`
-        DELETE FROM cart_items
-        WHERE cart_id = $1 AND product_id = $2 AND quantity <= 0
-      `, [cartId, productId]);
+                    INSERT INTO cart_items (cart_id, product_id, quantity)
+                    VALUES ($1, $2, $3)
+                    ON CONFLICT (cart_id, product_id)
+                    DO UPDATE SET quantity = EXCLUDED.quantity
+                `, [cartId, productId, quantity]);
             }
 
             await client.query('COMMIT');
@@ -72,18 +113,7 @@ class CartRepository {
         await pool.query(`DELETE FROM cart_items WHERE cart_id = $1`, [cartId]);
     }
 
-    //GET PRODUCT FROM CART BY USER ID
-    async getCartByUserId(userId) {
-        const res = await pool.query(`
-            SELECT ci.product_id, p.name, p.price, ci.quantity,
-                (p.price * ci.quantity) AS total
-            FROM cart_items ci
-            JOIN products p ON ci.product_id = p.id
-            WHERE ci.user_id = $1
-        `, [userId]);
 
-        return res.rows.map(row => new CartItem(row));
-    }
 }
 
 module.exports = CartRepository;

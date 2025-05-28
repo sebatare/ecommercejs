@@ -1,26 +1,46 @@
 const express = require('express');
-const NotAuthorizedError = require('../../domain/errors/NotAuthorizedError');
 
 function createCartRouter(service) {
     const router = express.Router();
 
-    router.post('/create', async (req, res) => {
+    router.post('/create', async (req, res, next) => {
         const userId = req.user?.id;
         try {
             const cart = await service.createCart(userId);
             res.status(201).json(cart);
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'No se pudo crear el carrito' });
+        } catch (error) {
+            next(error);
         }
     });
 
-    router.put('/update-items', async (req, res) => {
+    router.get('/get-cart', async (req, res) => {
         const userId = req.user?.id;
-        const updates = req.body.items; // [{ productId, delta }]
+        if (!userId) {
+            return res.status(401).json({ error: 'No autorizado' });
+        }
 
         try {
-            const cart = await service.getOrCreateCart(userId); // ← método que tú mencionaste antes
+            const cart = await service.getCart(userId);
+            if (!cart) {
+                return res.status(404).json({ error: 'Carrito no encontrado' });
+            }
+            res.status(200).json(cart);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'No se pudo obtener el carrito' });
+        }
+    });
+
+    router.put('/update-cart', async (req, res) => {
+        const userId = req.user?.id;
+        const updates = req.body.items;
+
+        if (!Array.isArray(updates)) {
+            return res.status(400).json({ error: 'El body debe tener un array "items"' });
+        }
+
+        try {
+            const cart = await service.getCart(userId);
             await service.updateItems(cart.id, updates);
             res.status(200).json({ message: 'Carrito actualizado correctamente' });
         } catch (err) {
