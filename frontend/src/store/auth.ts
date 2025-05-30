@@ -9,19 +9,18 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('token') || '',
   }),
   getters: {
-    isAuthenticated: (state) => !!state.token,
-    isAdmin: (state) => state.user?.role === 'admin',
+    isAuthenticated: (state) => !!state.token
   },
   actions: {
     async login(payload: LoginPayload) {
-      const { data } = await api.post<AuthResponse>('/login', payload)
+      const { data } = await api.post<AuthResponse>('/auth/login', payload)
       this.token = data.token
-      this.usuario = data.usuario
+      this.user = data.user
       localStorage.setItem('token', data.token)
     },
     logout() {
       this.token = ''
-      this.usuario = null
+      this.user = null
       localStorage.removeItem('token')
     },
   },
