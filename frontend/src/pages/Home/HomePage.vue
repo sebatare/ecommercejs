@@ -33,22 +33,4 @@ const agregarAlCarrito = (producto: Product) => {
 }
 </script>
 
-<style scoped>
-.productos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-}
 
-.producto-card {
-    border: 1px solid #ddd;
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: white;
-}
-
-img {
-    max-width: 100%;
-    height: auto;
-}
-</style>
