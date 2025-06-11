@@ -1,6 +1,8 @@
 :root {
   /* Tipografía */
   --font-sans: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-serif: 'Merriweather', Georgia, serif;
+  --font-mono: 'Courier New', Courier, monospace;
 
   /* Paleta principal */
   --color-primary: #4f46e5;
@@ -136,8 +138,8 @@ a {
 }
 
 a:visited {
+  color: inherit;
   text-decoration: none;
-  color: var(--color-text);
 }
 
 /* === Grilla de productos === */

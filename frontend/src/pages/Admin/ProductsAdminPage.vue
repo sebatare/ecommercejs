@@ -203,12 +203,12 @@ function deleteProduct(id: number) {
 }
 
 .add-button {
-    background-color: #2196f3;
+    background-color: #005296;
     color: white;
     border: none;
     padding: 8px 16px;
     font-weight: 600;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -295,13 +295,5 @@ button:hover {
     opacity: 0.9;
 }
 
-button:first-of-type {
-    background-color: #4caf50;
-    color: white;
-}
 
-button:last-of-type {
-    background-color: #f44336;
-    color: white;
-}
 </style>

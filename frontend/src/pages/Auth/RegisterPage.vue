@@ -137,6 +137,7 @@ const registrar = async () => {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: var(--color-secondary);
 }
 
 h1 {
@@ -157,7 +158,7 @@ form {
 
 label {
   margin-bottom: 0.3rem;
-  font-weight: 600;
+  font-weight:lighter;
 }
 
 input {
