@@ -27,6 +27,9 @@ const onSubmit = async () => {
     try {
         await auth.login({ email: email.value, password: password.value })
         router.push('/')
+        if(auth.user?.role === 'Admin') {
+            router.push('/admin')
+        }
     } catch (e) {
         error.value = 'Credenciales inválidas'
     }

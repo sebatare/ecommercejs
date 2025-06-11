@@ -39,5 +39,17 @@ export const useCartStore = defineStore('cart', {
     limpiar() {
       this.items = []
     },
+    unirConBackend(backendItems: CartItem[]) {
+      backendItems.forEach(backendItem => {
+        const localItem = this.items.find(i => i.id === backendItem.id)
+        if (localItem) {
+          // Suma cantidades si ya existe
+          localItem.quantity += backendItem.quantity
+        } else {
+          // Agrega el producto del backend si no está en el local
+          this.items.push({ ...backendItem })
+        }
+      })
+    },
   },
 })

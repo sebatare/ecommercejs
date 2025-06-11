@@ -4,7 +4,7 @@ const authenticate = require('../../middleware/authenticate');
 function createRoleRouter(service) {
     const router = express.Router();
 
-    router.get('/', authenticate, async (req, res) => res.json(await service.getAll()));
+    router.get('/', async (req, res) => res.json(await service.getAll()));
     router.post('/', async (req, res, next) => {
         try {
             const created = await service.create(req.body);
