@@ -1,5 +1,5 @@
 class Product {
-    constructor({ id, name, description, createdAt, price, stock }) {
+    constructor({ id, name, description, price, stock, categories = [] }) {
         if (!name) throw new Error('Product name is required');
         if (price < 0) throw new Error('Price cannot be negative');
 
@@ -9,6 +9,7 @@ class Product {
         this.createdAt = new Date();
         this.price = price;
         this.stock = stock;
+        this.categories = categories;
     }
 
 

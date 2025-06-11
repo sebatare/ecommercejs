@@ -31,7 +31,7 @@ function createAuthRouter(authService) {
                 const { token, user } = await authService.login(req.body);
                 res.json({ token, user });
             } catch (err) {
-                res.status(401).json({ error: err.message });
+                res.status(404).json({ error: err.message });
             }
         });
 

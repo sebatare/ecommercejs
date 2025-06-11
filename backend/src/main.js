@@ -2,19 +2,24 @@ const express = require('express');
 const cors = require('cors');
 // Error handling middleware
 const errorHandler = require('./middleware/errorHandler');
+// Product management
 const ProductService = require('./application/services/ProductService');
 const ProductRepository = require('./infrastructure/repositories/ProductRepository');
 const createProductRouter = require('./infrastructure/routers/ProductRouter');
-
+// Authentication and User management
 const AuthService = require('./application/services/AuthService');
 const UserRepository = require('./infrastructure/repositories/UserRepository');
 const authenticate = require('./middleware/authenticate');
 const createAuthRouter = require('./infrastructure/routers/AuthRouter');
 const createUserRouter = require('./infrastructure/routers/UserRouter');
-
+//Roles
 const RoleService = require('./application/services/RoleService');
 const RoleRepository = require('./infrastructure/repositories/RoleRepository');
 const createRoleRouter = require('./infrastructure/routers/RoleRouter');
+
+// Category management
+const CategoryRepository = require('./infrastructure/repositories/CategoryRepository');
+const createCategoryRouter = require('./infrastructure/routers/CategoryRouter');
 
 // CART INJECTION
 
@@ -43,6 +48,9 @@ app.use('/api/roles', createRoleRouter(roleService));
 
 const cartService = new CartService(new CartRepository());
 app.use('/api/cart', authenticate, createCartRouter(cartService));
+
+const categoryRepository = new CategoryRepository();
+app.use('/api/categories', createCategoryRouter(categoryRepository));
 
 
 // Middleware de manejo de errores

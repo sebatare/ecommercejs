@@ -15,7 +15,7 @@ class AuthService {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await this.userRepository.create({ name, email, password: hashedPassword });
+        const user = await this.userRepository.create({ name, email, password: hashedPassword, roleId: 2 }); // Asignar rol por defecto
         return user;
     }
 
@@ -32,12 +32,12 @@ class AuthService {
 
         // Crear y firmar el token
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            { id: user.id, email: user.email, role: user.role },
             SECRET,
             { expiresIn: '2h' }
         );
 
-        return { token, user: { id: user.id, name: user.name, email: user.email } };
+        return { token, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
     }
 }
 
