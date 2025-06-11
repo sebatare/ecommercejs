@@ -1,8 +1,10 @@
 <template>
     <div class="login-page">
         <form class="login-form" @submit.prevent="onSubmit">
-            <input v-model="email" type="email" placeholder="Correo" required />
-            <input v-model="password" type="password" placeholder="Contraseña" required />
+            <label for="email">Correo electrónico</label>
+            <input v-model="email" type="email" placeholder="Tu correo" required />
+            <label for="password">Contraseña</label>
+            <input v-model="password" type="password" placeholder="Tu contraseña" required />
             <button type="submit">Iniciar sesión</button>
             <p v-if="error" class="error">{{ error }}</p>
             <p class="register-prompt">¿No tienes una cuenta? <router-link to="/register">Regístrate</router-link></p>
@@ -40,9 +42,15 @@ const onSubmit = async () => {
 
 input {
     padding: 10px;
-    margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+label{
+    color: var(--color-secondary);
+    font-family: var(--font-serif);  
+}
+.login-page{
+    margin-top: 60px;
 }
 .login-form {
     display: flex;
