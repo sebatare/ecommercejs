@@ -9,6 +9,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     role_id INT REFERENCES roles(id)
 );
 
@@ -16,8 +17,9 @@ CREATE TABLE users (
 
 CREATE TABLE carts (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    status VARCHAR(20) DEFAULT 'open' -- open, paid, cancelled
+    user_id INT UNIQUE REFERENCES users(id), -- <--- UNIQUE aquí
+    status VARCHAR(20) DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -25,7 +27,9 @@ CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
     status VARCHAR(20) DEFAULT 'pending',
-    total NUMERIC(10, 2) NOT NULL
+    total NUMERIC(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
 );
 
 --RELACIONES MUCHO A MUCHO
@@ -73,11 +77,5 @@ CREATE TABLE product_categories (
     PRIMARY KEY (product_id, category_id)
 );
 
--- RELACIONES UNO A UNO
 
-CREATE TABLE profiles (
-    user_id INT PRIMARY KEY REFERENCES users(id),
-    address TEXT,
-    avatar_url TEXT
-);
 
