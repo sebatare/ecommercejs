@@ -5,79 +5,89 @@
     <div v-else-if="products.length === 0">No hay productos disponibles.</div>
     <div class="actions">
         <input v-model="searchQuery" type="text" placeholder="Buscar por nombre..." class="search-input" />
-        <button @click="addProduct" class="add-button">Agregar producto</button>
+        <button @click="openModal()" class="add-button">Agregar producto</button>
     </div>
 
 
-        <!-- Tabla de productos -->
-        <div class="product-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th @click="toggleSort('id')">
-                            ID <span class="sort-icon" :class="{ active: sortKey === 'id' }">{{ sortOrder === 'asc' ?
-                                '▲' : '▼' }}</span>
-                        </th>
-                        <th @click="toggleSort('name')">
-                            Nombre <span class="sort-icon" :class="{ active: sortKey === 'name' }">{{ sortOrder ===
-                                'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th @click="toggleSort('price')">
-                            Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortOrder ===
-                                'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th @click="toggleSort('categories')">
-                            Categoría <span class="sort-icon" :class="{ active: sortKey === 'categories' }">{{ sortOrder
-                                === 'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="product in paginatedProducts" :key="product.id">
-                        <td>{{ product.id }}</td>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.price }}</td>
-                        <td>
-                            <span v-for="(cat, index) in product.categories" :key="index" class="category-badge">
-                                {{ cat.name }}
-                            </span>
-                        </td>
-                        <td>
-                            <button @click="editProduct(product.id)">Editar</button>
-                            <button @click="deleteProduct(product.id)">Eliminar</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Tabla de productos -->
+    <div class="product-table">
+        <table>
+            <thead>
+                <tr>
+                    <th @click="toggleSort('id')">
+                        ID <span class="sort-icon" :class="{ active: sortKey === 'id' }">{{ sortOrder === 'asc' ?
+                            '▲' : '▼' }}</span>
+                    </th>
+                    <th @click="toggleSort('name')">
+                        Nombre <span class="sort-icon" :class="{ active: sortKey === 'name' }">{{ sortOrder ===
+                            'asc' ? '▲' : '▼' }}</span>
+                    </th>
+                    <th @click="toggleSort('price')">
+                        Precio <span class="sort-icon" :class="{ active: sortKey === 'price' }">{{ sortOrder ===
+                            'asc' ? '▲' : '▼' }}</span>
+                    </th>
+                    <th @click="toggleSort('stock')">
+                        Stock <span class="sort-icon" :class="{ active: sortKey === 'stock' }">{{ sortOrder ===
+                            'asc' ? '▲' : '▼' }}</span>
+                    </th>
+                    <th @click="toggleSort('categories')">
+                        Categoría <span class="sort-icon" :class="{ active: sortKey === 'categories' }">{{ sortOrder
+                            === 'asc' ? '▲' : '▼' }}</span>
+                    </th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="product in paginatedProducts" :key="product.id">
+                    <td>{{ product.id }}</td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.stock }}</td>
+                    <td>
+                        <span v-for="(cat, index) in product.categories" :key="index" class="category-badge">
+                            {{ cat.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <button @click="openModal(product)">Editar</button>
+                        <button @click="askDeleteProduct(product)">Eliminar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-            <!-- Controles de paginación -->
-            <div class="pagination">
-                <button :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
-                <span>Página {{ currentPage }} de {{ totalPages }}</span>
-                <button :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
-            </div>
+        <!-- Controles de paginación -->
+        <div class="pagination">
+            <button :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
+            <span>Página {{ currentPage }} de {{ totalPages }}</span>
+            <button :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
+        </div>
     </div>
+
+    <ProductFormModal v-if="showModal" :product="selectedProduct" @close="showModal = false" @saved="onProductSaved" />
+    <ConfirmDialog v-if="showConfirm" :message="`¿Seguro que deseas eliminar este producto?`" :showQuantityInput="true"
+        :maxStock="productToDelete?.stock" @confirm="confirmDelete" @deleteAll="deleteAllProduct"
+        @cancel="cancelDelete" />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
+import { ref, onMounted, computed } from 'vue'
 import api from '../../utils/axios'
+import ProductFormModal from '../../components/ProductFormModal.vue'
+import ConfirmDialog from '../../components/ConfirmDialog.vue'
 import type { Product } from '../../types/index'
-import { onMounted, computed } from 'vue'
+
 const products = ref<Product[]>([])
-// Cargar productos al montar el componente
 const loading = ref(true)
-
 const searchQuery = ref('')
-
-
 const sortKey = ref('id')
 const sortOrder = ref<'asc' | 'desc'>('asc')
-// Paginación
 const itemsPerPage = 20
 const currentPage = ref(1)
+const showModal = ref(false)
+const selectedProduct = ref(null)
+const showConfirm = ref(false)
+const productToDelete = ref<Product | null>(null)
 
 const paginatedProducts = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage
@@ -87,16 +97,6 @@ const paginatedProducts = computed(() => {
 const totalPages = computed(() => {
     return Math.ceil(filteredProducts.value.length / itemsPerPage)
 })
-
-
-function toggleSort(key: string) {
-    if (sortKey.value === key) {
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-    } else {
-        sortKey.value = key
-        sortOrder.value = 'asc'
-    }
-}
 
 const filteredProducts = computed(() => {
     const filtered = products.value.filter(product =>
@@ -123,7 +123,6 @@ const filteredProducts = computed(() => {
     })
 })
 
-
 onMounted(async () => {
     try {
         const response = await api.get('/products')
@@ -135,20 +134,86 @@ onMounted(async () => {
     }
 })
 
-function addProduct() {
-    // Aquí puedes abrir un modal o navegar a un formulario
-    console.log('Agregar nuevo producto')
+function toggleSort(key: string) {
+    if (sortKey.value === key) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    } else {
+        sortKey.value = key
+        sortOrder.value = 'asc'
+    }
 }
 
-
-function editProduct(id: number) {
-    // Lógica para editar el producto
+function openModal(product = null) {
+    selectedProduct.value = product
+    showModal.value = true
 }
 
-function deleteProduct(id: number) {
-    // Lógica para eliminar el producto
+async function onProductSaved() {
+    // Opción 1: Recargar todos los productos (más simple y siempre actualizado)
+    loading.value = true
+    try {
+        const response = await api.get('/products')
+        products.value = response.data
+    } catch (error) {
+        console.error('Error al recargar productos:', error)
+    } finally {
+        loading.value = false
+        showModal.value = false
+    }
+}
+
+function askDeleteProduct(product: Product) {
+    productToDelete.value = product
+    showConfirm.value = true
+}
+async function deleteAllProduct() {
+    if (!productToDelete.value) return
+    await deleteProduct(productToDelete.value.id)
+    productToDelete.value = null
+    showConfirm.value = false
+}
+
+async function confirmDelete(quantityToDelete: number) {
+    if (!productToDelete.value) return
+    const id = productToDelete.value.id
+    const stock = productToDelete.value.stock
+
+    if (quantityToDelete >= stock) {
+        await deleteProduct(id)
+    } else {
+        await deleteProductQuantity(id, quantityToDelete)
+        // Actualiza el stock localmente
+        const prod = products.value.find(p => p.id === id)
+        if (prod) prod.stock -= quantityToDelete
+    }
+    productToDelete.value = null
+    showConfirm.value = false
+}
+
+function cancelDelete() {
+    productToDelete.value = null
+    showConfirm.value = false
+}
+
+async function deleteProduct(id: number) {
+    try {
+        await api.delete(`/products/${id}`)
+        products.value = products.value.filter(p => p.id !== id)
+    } catch (error) {
+        alert('Error al eliminar el producto')
+    }
+}
+
+async function deleteProductQuantity(id: number, quantity: number) {
+    try {
+        console.log(`Eliminando ${quantity} unidades del producto con ID: ${id}`)
+        await api.put(`/products/${id}/${quantity}`)
+    } catch (error) {
+        alert('Error al eliminar cantidad')
+    }
 }
 </script>
+
 <style scoped>
 .sort-icon {
     font-size: 12px;
@@ -160,10 +225,6 @@ function deleteProduct(id: number) {
     opacity: 1;
 }
 
-.product-table {
-    overflow: auto;
-    max-height: 500px;
-}
 
 .pagination {
     margin-top: 12px;
@@ -233,6 +294,8 @@ function deleteProduct(id: number) {
     padding: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     color: var(--text-color, #333);
+    overflow: auto;
+    max-height: 750px;
 }
 
 h1 {
@@ -294,6 +357,4 @@ button {
 button:hover {
     opacity: 0.9;
 }
-
-
 </style>

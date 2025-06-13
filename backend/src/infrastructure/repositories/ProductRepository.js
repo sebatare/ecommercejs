@@ -142,6 +142,27 @@ class ProductRepository {
             throw new Error('No se pudo eliminar el producto');
         }
     }
+    async deleteByQuantity(id, quantity) {
+        if (quantity <= 0) {
+            throw new Error("La cantidad debe ser mayor que cero");
+        }
+        console.log(`Disminuyendo stock del producto ID: ${id} en cantidad: ${quantity}`);
+        try {
+            // Disminuir el stock
+            const res = await pool.query(
+                `UPDATE products SET stock = stock - $1 WHERE id = $2 AND stock >= $1 RETURNING *`,
+                [quantity, id]
+            );
+            if (res.rowCount === 0) {
+                throw new Error("No hay suficiente stock o producto no encontrado");
+            }
+            // Si el stock llega a 0, puedes eliminar el producto si lo deseas:
+            // await pool.query('DELETE FROM products WHERE id = $1 AND stock <= 0', [id]);
+        } catch (error) {
+            console.error('Error en deleteByQuantity:', error);
+            throw new Error('No se pudo disminuir el stock del producto');
+        }
+    }
 }
 
 module.exports = ProductRepository;

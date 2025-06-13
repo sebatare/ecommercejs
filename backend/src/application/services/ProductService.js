@@ -29,6 +29,14 @@ class ProductService {
     delete(id) {
         return this.productRepository.delete(id);
     }
+
+    deleteByQuantity(id, quantity) {
+        console.log(`SERBICIO: ${id} en cantidad: ${quantity}`);
+        if (quantity <= 0) {
+            throw new Error("La cantidad debe ser mayor que cero");
+        }
+        return this.productRepository.deleteByQuantity(id, quantity);
+    }
 }
 
 module.exports = ProductService;

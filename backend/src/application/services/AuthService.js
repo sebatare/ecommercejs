@@ -32,7 +32,7 @@ class AuthService {
 
         // Crear y firmar el token
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
+            { id: user.id, email: user.email, role: user.role,  name: user.name },
             SECRET,
             { expiresIn: '2h' }
         );
