@@ -8,11 +8,19 @@ function createProductRouter(service) {
 
     // Proteger solo crear, actualizar y eliminar
     router.post('/', async (req, res) => res.status(201).json(await service.create(req.body)));
-    router.put('/:id', async (req, res) => res.json(await service.update(req.params.id, req.body)));
+    //eliminar productos con x cantidad
+    router.put('/:id/:quantity', async (req, res) => {
+        console.log(`ROUTER: ${req.params.id} en cantidad: ${req.params.quantity}`);
+        await service.deleteByQuantity(req.params.id, req.params.quantity);
+        res.status(204).send();
+    });
+
+    router.put('/update/:id', async (req, res) => res.json(await service.update(req.params.id, req.body)));
     router.delete('/:id', async (req, res) => {
         await service.delete(req.params.id);
         res.status(204).send();
     });
+
 
     return router;
 }

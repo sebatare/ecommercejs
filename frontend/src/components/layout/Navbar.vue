@@ -27,8 +27,11 @@
         </router-link>
       </li>
 
-      <li v-if="auth.isAuthenticated">
-        <span class="navbar__user">{{ auth.user?.name }}</span>
+      <li v-if="auth.loading">
+        <span>Cargando usuario...</span>
+      </li>
+      <li v-else-if="auth.isAuthenticated">
+        <span class="navbar__user">{{ userNameCapitalized }}</span>
         <button @click="logout" class="navbar__logout">Cerrar sesión</button>
       </li>
       <li v-else>
@@ -42,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../../store/auth'
 import { useCartStore } from '../../store/cart'
@@ -50,6 +53,13 @@ import { useCartStore } from '../../store/cart'
 const auth = useAuthStore()
 const cart = useCartStore()
 const menuAbierto = ref(false)
+
+const userNameCapitalized = computed(() => {
+  console.log("User name:", auth.user?.name)
+  return auth.user?.name
+    ? auth.user.name.charAt(0).toUpperCase() + auth.user.name.slice(1)
+    : ''
+})
 
 function logout() {
   auth.logout()
