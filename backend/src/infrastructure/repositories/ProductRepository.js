@@ -116,7 +116,7 @@ class ProductRepository {
             client.release();
         }
     }
-
+    //ACUTALIZAR METODO UPDATE PARA RECIBIR ID DE CATEGORIAS
     async update(id, data) {
         try {
             const { name, description, price, stock } = data;
