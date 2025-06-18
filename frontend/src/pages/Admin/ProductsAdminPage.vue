@@ -1,4 +1,4 @@
-<template>
+ <template>
     <h1>Panel de administración de productos</h1>
     <p>En esta sección puedes gestionar los productos de tu tienda.</p>
     <div v-if="loading">Cargando productos...</div>

@@ -15,7 +15,7 @@ function createProductRouter(service) {
         res.status(204).send();
     });
 
-    router.put('/update/:id', async (req, res) => res.json(await service.update(req.params.id, req.body)));
+    router.put('/:id', async (req, res) => res.json(await service.update(req.params.id, req.body)));
     router.delete('/:id', async (req, res) => {
         await service.delete(req.params.id);
         res.status(204).send();

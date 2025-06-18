@@ -116,21 +116,46 @@ class ProductRepository {
             client.release();
         }
     }
-    //ACUTALIZAR METODO UPDATE PARA RECIBIR ID DE CATEGORIAS
     async update(id, data) {
+        const client = await pool.connect();
         try {
-            const { name, description, price, stock } = data;
-            const res = await pool.query(
+            await client.query('BEGIN');
+            const { name, description, price, stock, categoryIds = [] } = data;
+
+            // Actualiza los campos del producto
+            const res = await client.query(
                 `UPDATE products 
                  SET name = $1, description = $2, price = $3, stock = $4 
                  WHERE id = $5 RETURNING *`,
                 [name, description, price, stock, id]
             );
-            const row = res.rows[0];
-            return new Product({ ...row, createdAt: row.created_date });
+
+            // Actualiza las categorías si se proporcionan
+            if (Array.isArray(categoryIds)) {
+                // Elimina las relaciones actuales
+                await client.query(
+                    'DELETE FROM product_categories WHERE product_id = $1',
+                    [id]
+                );
+                // Inserta las nuevas relaciones
+                if (categoryIds.length > 0) {
+                    const values = categoryIds.map((catId, idx) => `($1, $${idx + 2})`).join(', ');
+                    await client.query(
+                        `INSERT INTO product_categories (product_id, category_id) VALUES ${values}`,
+                        [id, ...categoryIds]
+                    );
+                }
+            }
+
+            await client.query('COMMIT');
+            // Devuelve el producto actualizado con sus categorías
+            return await this.findById(id);
         } catch (error) {
+            await client.query('ROLLBACK');
             console.error('Error en update:', error);
             throw new Error('No se pudo actualizar el producto');
+        } finally {
+            client.release();
         }
     }
 

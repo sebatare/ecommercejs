@@ -7,6 +7,7 @@ import { useAuthStore } from './store/auth'
 import { jwtDecode } from 'jwt-decode'
 
 //Crea primero la app y pinia
+(async()=>{
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -18,3 +19,4 @@ const auth = useAuthStore()
 
 await auth.initializeFromToken()
 app.mount('#app')
+})

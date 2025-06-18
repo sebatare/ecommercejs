@@ -1,4 +1,4 @@
-const NotFoundError = require("../../domain/errors/NotFoundError");
+ const NotFoundError = require("../../domain/errors/NotFoundError");
 
 // src/application/ProductService.js
 class ProductService {

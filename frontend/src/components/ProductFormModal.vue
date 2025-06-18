@@ -13,7 +13,7 @@
                 </div>
                 <div class="form-group">
                     <label>Precio</label>
-                    <input v-model.number="form.price" type="number" min="0" required />
+                    <input v-model.number="form.price" type="any" min="0" required />
                 </div>
                 <div class="form-group">
                     <label>Stock</label>
