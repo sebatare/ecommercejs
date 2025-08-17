@@ -1,4 +1,4 @@
-name: Deploy to Raspberry Pi
+name: Deploy Ecommerce to EC2
 
 on:
   push:
@@ -20,21 +20,35 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo -u deployuser
-            cd 
-            echo "${USER} ha iniciado sesión"
+            # 1. Detener la aplicación si está corriendo
+            echo "Deteniendo la aplicación..."
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 stop ecommerce-backend || true
 
-            echo "Entrando al backend..."
-            cd /home/sebastian/ecommercejs/backend/src
+            # 2. Navegar al directorio de la aplicación y actualizar código
+            echo "Actualizando código..."
+            sudo -u deployuser git -C /home/deployuser/ecommercejs fetch --all
+            sudo -u deployuser git -C /home/deployuser/ecommercejs pull
 
-            echo "Actualizando repo..."
-            git pull
-
+            # 3. Instalar dependencias del backend y frontend
             echo "Instalando dependencias..."
-            npm ci
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install --prefix /home/deployuser/ecommercejs/backend
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install --prefix /home/deployuser/ecommercejs/frontend
 
-            echo "Compilando..."
-            npm run build || true
+            # 4. Build del frontend
+            echo "Construyendo frontend..."
+            sudo -u deployuser bash -c "cd /home/deployuser/ecommercejs/frontend && /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm run build"
 
-            echo "Reiniciando servicio..."
-            pm2 restart ecommerce-backend || pm2 start main.js --name ecommerce-backend
+            # 5. Reiniciar Nginx
+            echo "Reiniciando Nginx..."
+            sudo nginx -t
+            sudo systemctl restart nginx
+
+            # 6. Ejecutar seed (opcional)
+            echo "Ejecutando seed de la base de datos..."
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/node /home/deployuser/ecommercejs/backend/seed.js || true
+
+            # 7. Iniciar la aplicación de nuevo
+            echo "Iniciando la aplicación..."
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 start ecommerce-backend --name ecommerce-backend || true
+
+            echo "✅ Despliegue completado."
