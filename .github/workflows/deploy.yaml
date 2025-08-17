@@ -20,6 +20,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            sudo -u deployuser
+            cd 
+            echo "${USER} ha iniciado sesión"
+
             echo "Entrando al backend..."
             cd /home/sebastian/ecommercejs/backend/src
 
@@ -34,5 +38,3 @@ jobs:
 
             echo "Reiniciando servicio..."
             pm2 restart ecommerce-backend || pm2 start main.js --name ecommerce-backend
-
-            echo "✅ Deploy completado en Raspberry Pi."
