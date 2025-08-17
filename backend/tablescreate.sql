@@ -29,7 +29,8 @@ CREATE TABLE orders
     user_id INT REFERENCES users(id),
     status VARCHAR(20) DEFAULT 'pending',
     total NUMERIC(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 --RELACIONES MUCHOS A MUCHOS
@@ -37,11 +38,13 @@ CREATE TABLE orders
 CREATE TABLE products
 (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(100),
+    name VARCHAR(100),
     description TEXT,
     price NUMERIC(10, 2),
     stock INT,
-    image_url TEXT
+    image_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cart_items

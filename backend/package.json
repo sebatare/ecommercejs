@@ -10,18 +10,17 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@faker-js/faker": "^9.8.0",
+    "@faker-js/faker": "^9.9.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
     "express": "^4.18.2",
     "express-validator": "^6.14.3",
     "jsonwebtoken": "^8.5.1",
-    "pg": "^8.7.3"
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.1.1"
   }
 }
-
-

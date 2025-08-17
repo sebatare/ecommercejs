@@ -10,7 +10,7 @@ class ProductRepository {
                     p.id AS product_id,
                     p.name AS product_name,
                     p.description,
-                    p.created_date,
+                    p.created_at,
                     p.price,
                     p.stock,
                     COALESCE(
@@ -50,7 +50,7 @@ class ProductRepository {
                     p.id AS product_id,
                     p.name AS product_name,
                     p.description,
-                    p.created_date,
+                    p.created_at,
                     p.price,
                     p.stock,
                     COALESCE(
