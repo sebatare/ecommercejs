@@ -56,4 +56,4 @@ app.use('/api/categories', createCategoryRouter(categoryRepository));
 // Middleware de manejo de errores
 app.use(errorHandler);
 
-app.listen(3001, () => console.log('Servidor en http://localhost:3001'));
+app.listen(3002, () => console.log('Servidor en http://localhost:3002'));
