@@ -2,46 +2,37 @@ name: Deploy to Raspberry Pi
 
 on:
   push:
-    branches: [main] # Cambia si usas otra rama
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Verificar clave privada cargada
-        run: |
-          echo "Longitud de clave:" $(wc -c < ~/.ssh/github_deploy_key)
-          head -n 2 ~/.ssh/github_deploy_key | sed 's/./*/g'
-      - name: Test secret está presente
-        run: |
-          if [ -z "${{ secrets.DEPLOY_KEY }}" ]; then
-            echo "❌ Secreto vacío"
-            exit 1
-          else
-            echo "✅ Secreto presente"
-          fi
-      - name: Verifica clave escrita
-        run: |
-          echo "Primeras líneas de la clave privada:"
-          head -n 5 ~/.ssh/github_deploy_key
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" | tr -d '\r' > ~/.ssh/github_deploy_key
-          chmod 600 ~/.ssh/github_deploy_key
-          ssh-keyscan -H 192.168.100.51 >> ~/.ssh/known_hosts
-          ls -la ~/.ssh
-
-      - name: Deploy to Raspberry Pi
-        run: |
-          ssh -i ~/.ssh/github_deploy_key sebastian@192.168.100.51 << 'EOF'
+      - name: Deploy with SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST_RPI }}       # 👉 Define este secreto en GitHub con la IP (192.168.100.51)
+          username: ${{ secrets.SSH_USER_RPI }}   # 👉 Define este secreto en GitHub (ej. "sebastian")
+          key: ${{ secrets.SSH_PRIVATE_KEY_RPI }} # 👉 Define este secreto en GitHub (tu clave privada .pem o id_rsa)
+          script: |
+            echo "Entrando al backend..."
             cd /home/sebastian/ecommercejs/backend/src
+
+            echo "Actualizando repo..."
             git pull
+
+            echo "Instalando dependencias..."
             npm ci
+
+            echo "Compilando..."
             npm run build || true
-            pm2 restart app || node main.js &
-          EOF
+
+            echo "Reiniciando servicio..."
+            pm2 restart ecommerce-backend || pm2 start main.js --name ecommerce-backend
+
+            echo "✅ Deploy completado en Raspberry Pi."
