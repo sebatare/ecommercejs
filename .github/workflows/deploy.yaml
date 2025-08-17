@@ -16,9 +16,9 @@ jobs:
       - name: Deploy with SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST_RPI }}       # 👉 Define este secreto en GitHub con la IP (192.168.100.51)
-          username: ${{ secrets.SSH_USER_RPI }}   # 👉 Define este secreto en GitHub (ej. "sebastian")
-          key: ${{ secrets.SSH_PRIVATE_KEY_RPI }} # 👉 Define este secreto en GitHub (tu clave privada .pem o id_rsa)
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Entrando al backend..."
             cd /home/sebastian/ecommercejs/backend/src
