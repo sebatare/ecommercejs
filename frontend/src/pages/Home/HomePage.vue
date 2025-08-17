@@ -43,6 +43,7 @@ import { onMounted, ref, computed } from 'vue'
 import api from '../../utils/axios'
 import type { Product, Category } from '../../types/index'
 import { useCartStore } from '../../store/cart'
+console.log('HomePage script setup loaded')
 
 const products = ref<Product[]>([])
 const categorias = ref<Category[]>([])
@@ -90,16 +91,22 @@ const cambiarPagina = (nuevaPagina: number) => {
 
 
 onMounted(async () => {
-    const { data } = await api.get<Product[]>('/products')
-    products.value = data
+    console.log('HomePage mounted') // <-- Agrega esto
+    try {
+        const { data } = await api.get<Product[]>('/products')
+        console.log('Productos recibidos:', data) // <-- Y esto
+        products.value = data
 
-    const categoriasUnicas: Record<number, Category> = {}
-    data.forEach((producto) => {
-        producto.categories.forEach((cat) => {
-            categoriasUnicas[cat.id] = cat
+        const categoriasUnicas: Record<number, Category> = {}
+        data.forEach((producto) => {
+            producto.categories.forEach((cat) => {
+                categoriasUnicas[cat.id] = cat
+            })
         })
-    })
-    categorias.value = Object.values(categoriasUnicas)
+        categorias.value = Object.values(categoriasUnicas)
+    } catch (e) {
+        console.error('Error al cargar productos:', e)
+    }
 })
 
 const productosFiltrados = computed(() => {
@@ -181,32 +188,32 @@ const agregarAlCarrito = (producto: Product) => {
 }
 
 .paginacion {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
 }
 
 .paginacion button {
-  padding: 0.4rem 0.8rem;
-  font-weight: bold;
-  background-color: var(--color-primary, #007bff);
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  min-width: 40px;
+    padding: 0.4rem 0.8rem;
+    font-weight: bold;
+    background-color: var(--color-primary, #007bff);
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    min-width: 40px;
 }
 
 .paginacion button:disabled {
-  background-color: #999;
-  cursor: not-allowed;
+    background-color: #999;
+    cursor: not-allowed;
 }
 
 .paginacion button.activa {
-  background-color: #0056b3;
+    background-color: #0056b3;
 }
 
 .paginacion span {

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import type { Product, CartItem } from '../types/index'
 
 export const useCartStore = defineStore('cart', {
+  
   state: () => ({
     items: [] as CartItem[],
   }),
