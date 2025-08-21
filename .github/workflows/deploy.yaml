@@ -46,6 +46,6 @@ jobs:
 
             # 6. Iniciar la aplicación de nuevo
             echo "Iniciando la aplicación..."
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 start ecommerce-backend --name ecommerce-backend || true
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 start /home/deployuser/ecommercejs/backend/index.js --name "ecommerce-backend"
 
             echo "✅ Despliegue completado."
