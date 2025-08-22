@@ -16,7 +16,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory('/proyecto1/'),  // <--- aquí pones tu subruta
+  history: createWebHistory('/ecommerce/'),  // <--- aquí pones tu subruta
   routes,
 })
 
