@@ -5,48 +5,25 @@
     <form @submit.prevent="registrar">
       <div class="form-group">
         <label for="name">Nombre</label>
-        <input
-          id="name"
-          v-model="form.name"
-          type="text"
-          required
-          placeholder="Tu nombre"
-        />
+        <input id="name" v-model="form.name" type="text" required placeholder="Tu nombre" />
       </div>
 
       <div class="form-group">
         <label for="email">Correo electrónico</label>
-        <input
-          id="email"
-          v-model="form.email"
-          type="email"
-          required
-          placeholder="correo@ejemplo.com"
-        />
+        <input id="email" v-model="form.email" type="email" required placeholder="correo@ejemplo.com" />
       </div>
 
       <div class="form-group">
         <label for="password">Contraseña</label>
-        <input
-          id="password"
-          v-model="form.password"
-          type="password"
-          required
-          minlength="6"
-          placeholder="Mínimo 6 caracteres"
-        />
+        <input id="password" v-model="form.password" type="password" required minlength="6"
+          placeholder="Mínimo 6 caracteres" />
       </div>
 
       <div class="form-group">
         <label for="confirm">Confirmar contraseña</label>
-        <input
-          id="confirm"
-          v-model="form.confirm"
-          type="password"
-          required
+        <input id="confirm" v-model="form.confirm" type="password" required
           :class="{ 'input-error': form.confirm && form.confirm !== form.password }"
-          placeholder="Repite tu contraseña"
-        />
+          placeholder="Repite tu contraseña" />
         <p v-if="form.confirm && form.confirm !== form.password" class="error">
           Las contraseñas no coinciden
         </p>
@@ -92,7 +69,9 @@ const registrar = async () => {
 
   loading.value = true
   try {
-    const response = await fetch('http://localhost:3001/api/auth/register', {
+    const apiUrl = import.meta.env.VITE_API_URL;
+
+    const response = await fetch(`${apiUrl}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -158,7 +137,7 @@ form {
 
 label {
   margin-bottom: 0.3rem;
-  font-weight:lighter;
+  font-weight: lighter;
 }
 
 input {
