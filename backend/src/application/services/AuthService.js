@@ -15,7 +15,7 @@ class AuthService {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await this.userRepository.create({ name, email, password: hashedPassword, roleId: 1 }); // Asignar rol por defecto
+        const user = await this.userRepository.create({ name, email, password: hashedPassword, roleId: 4 }); // Asignar rol por defecto
         return user;
     }
 

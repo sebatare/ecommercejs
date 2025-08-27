@@ -22,6 +22,13 @@ class RoleRepository extends BaseRepository {
         );
         return this.mapper(res.rows[0]);
     }
+
+    async delete(id) {
+        await pool.query(
+            `DELETE FROM roles WHERE id = $1`,
+            [id]
+        );
+    }
 }
 
 module.exports = RoleRepository;

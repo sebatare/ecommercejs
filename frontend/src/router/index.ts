@@ -5,6 +5,8 @@ import HomePage from '../pages/Home/HomePage.vue'
 import CartPage from '../pages/Cart/CartPage.vue'
 import HomeAdminPage from '../pages/Admin/HomeAdminPage.vue'
 import ProductsAdminPage from '../pages/Admin/ProductsAdminPage.vue'
+import RolesAdminPage from '../pages/Admin/RolesAdminPage.vue'
+import UsersAdminPage from '../pages/Admin/UsersAdminPage.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -13,6 +15,8 @@ const routes = [
   { path:'/register', component: RegisterPage },
   { path: '/admin', component: HomeAdminPage },
   { path: '/admin/products', component: ProductsAdminPage },
+  { path: '/admin/roles', component: RolesAdminPage },
+  { path: '/admin/users', component: UsersAdminPage },
 ]
 
 const router = createRouter({

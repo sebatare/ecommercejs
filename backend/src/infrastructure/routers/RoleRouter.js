@@ -1,6 +1,6 @@
 const express = require('express');
 const authenticate = require('../../middleware/authenticate');
-
+const authorize = require('../../middleware/authorization');
 function createRoleRouter(service) {
     const router = express.Router();
 
@@ -16,11 +16,12 @@ function createRoleRouter(service) {
 
     router.put('/:id', async (req, res) => res.json(await service.update(req.params.id, req.body)));
 
-    router.delete('/:id', authenticate, async (req, res, next) => {
+    router.delete('/:id', authenticate,authorize('admin'), async (req, res, next) => {
         try {
+            console.log("DELETE /roles/:id called");
             const id = parseInt(req.params.id);
-            await service.delete(id); // simplemente espera que se elimine
-            res.json({ message: 'Rol eliminado' }); // respuesta con mensaje
+            await service.delete(id);
+            res.json({ message: 'Rol eliminado' });
         } catch (error) {
             next(error);
         }

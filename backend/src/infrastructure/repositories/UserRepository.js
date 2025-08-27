@@ -1,10 +1,12 @@
 const pool = require('../db/pool');
 const User = require('./../../domain/User');
 const BaseRepository = require('./BaseRepository');
+
 class UserRepository extends BaseRepository {
     constructor() {
         super('users', row => new User(row));
     }
+
     async findByEmail(email) {
         const res = await pool.query(
             `SELECT u.*, r.name AS role_name
@@ -16,7 +18,6 @@ class UserRepository extends BaseRepository {
 
         return res.rows[0] ? new User(res.rows[0]) : null;
     }
-
 
     async create({ name, email, password, roleId }) {
         const client = await pool.connect();
@@ -49,12 +50,9 @@ class UserRepository extends BaseRepository {
         return await super.findAll();
     }
 
-    async setRole({ userEmail, roleId }) {
-        const res = await pool.query(
-            `UPDATE users SET role_id = $1 WHERE email = $2 RETURNING *`,
-            [roleId, userEmail]
-        );
-        return new User(res.rows[0]);
+    // Este método es mucho más simple ahora.
+    async update(id, updatedData) {
+        return await super.update(id, updatedData);
     }
 
     async deleteByEmail(email) {

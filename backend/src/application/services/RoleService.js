@@ -13,6 +13,10 @@ class RoleService extends BaseService {
     update(id, data) {
         return this.repository.update(id, data);
     }
+
+    delete(id) {
+        return this.repository.delete(id);
+    }   
 }
 
 module.exports = RoleService;
