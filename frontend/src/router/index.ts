@@ -11,7 +11,7 @@ const routes = [
   { path: '/login', component: LoginPage },
   { path: '/cart', component: CartPage },
   { path:'/register', component: RegisterPage },
-  { path: '/admin', component: HomeAdminPage },
+  { path: '/administrador', component: HomeAdminPage },
   { path: '/admin/products', component: ProductsAdminPage },
 ]
 
