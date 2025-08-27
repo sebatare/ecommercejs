@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import api from '../utils/axios'
+import api from '../utils/api-auth'
 import type { Product, Category } from '../types/index'
 
 const props = defineProps<{ product?: Product | null }>()

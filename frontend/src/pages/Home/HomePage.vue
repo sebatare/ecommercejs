@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import api from '../../utils/axios'
+import api from '../../utils/api-public'
 import type { Product, Category } from '../../types/index'
 import { useCartStore } from '../../store/cart'
 console.log('HomePage script setup loaded')

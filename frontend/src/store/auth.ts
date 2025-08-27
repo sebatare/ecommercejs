@@ -1,6 +1,6 @@
 // src/store/auth.ts
 import { defineStore } from 'pinia'
-import api from '../utils/axios'
+import api from '../utils/api-auth'
 import type { User, LoginPayload, AuthResponse, Cart } from '../types/index'
 //Obtengo cart temporal
 import { useCartStore } from './cart'

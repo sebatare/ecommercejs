@@ -46,6 +46,8 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
+import apiPublic from '../../utils/api-public' // Usamos la instancia de API pública
+import { useRouter } from 'vue-router'
 
 const form = reactive({
   name: '',
@@ -58,6 +60,8 @@ const error = ref('')
 const success = ref(false)
 const loading = ref(false)
 
+const router = useRouter()
+
 const registrar = async () => {
   error.value = ''
   success.value = false
@@ -69,39 +73,38 @@ const registrar = async () => {
 
   loading.value = true
   try {
-    const apiUrl = import.meta.env.VITE_API_URL;
-
-    const response = await fetch(`${apiUrl}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        password: form.password
-      })
+    const response = await apiPublic.post('/auth/register', {
+      name: form.name,
+      email: form.email,
+      password: form.password,
     })
 
-    if (!response.ok) {
-      const data = await response.json()
-      if (data.errors) {
-        error.value = data.errors.map((e: any) => e.msg).join(', ')
-      } else if (data.error) {
-        error.value = data.error
-      } else {
-        error.value = 'Error desconocido'
-      }
-      return
-    }
-
     success.value = true
+    // Opcional: Limpiar el formulario después del registro exitoso
     form.name = ''
     form.email = ''
     form.password = ''
     form.confirm = ''
+
+    // Opcional: Redirigir al usuario después de un tiempo
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
   } catch (err: any) {
-    error.value = 'Error de conexión con el servidor'
+    // Manejo de errores más detallado
+    if (err.response && err.response.data) {
+      if (err.response.data.errors) {
+        // Errores de validación de Express Validator
+        error.value = err.response.data.errors.map((e: any) => e.msg).join(', ')
+      } else if (err.response.data.error) {
+        // Errores generales del backend
+        error.value = err.response.data.error
+      } else {
+        error.value = 'Error al crear la cuenta. Por favor, intenta de nuevo.'
+      }
+    } else {
+      error.value = 'Error de conexión con el servidor. Verifica tu red.'
+    }
   } finally {
     loading.value = false
   }

@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import api from '../../utils/axios'
+import api from './../../utils/api-auth'
 import ProductFormModal from '../../components/ProductFormModal.vue'
 import ConfirmDialog from '../../components/ConfirmDialog.vue'
 import type { Product } from '../../types/index'
