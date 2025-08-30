@@ -1,17 +1,18 @@
+const pool = require('../db/pool');
+
 class BaseRepository {
     constructor(tableName, mapper) {
         this.tableName = tableName;
         this.mapper = mapper;
-        this.pool = require('../db/pool');
     }
 
     async findAll() {
-        const res = await this.pool.query(`SELECT * FROM ${this.tableName} ORDER BY id`);
+        const res = await pool.query(`SELECT * FROM ${this.tableName} ORDER BY id`);
         return res.rows.map(this.mapper);
     }
 
     async findById(id) {
-        const res = await this.pool.query(
+        const res = await pool.query(
             `SELECT * FROM ${this.tableName} WHERE id = $1`,
             [id]
         );
@@ -19,7 +20,18 @@ class BaseRepository {
     }
 
     async delete(id) {
-        await this.pool.query(`DELETE FROM ${this.tableName} WHERE id = $1`, [id]);
+        await pool.query(`DELETE FROM ${this.tableName} WHERE id = $1`, [id]);
+    }
+
+    async update(id, data) {
+        const columns = Object.keys(data).map((key, index) => `${key} = $${index + 2}`).join(', ');
+        const values = Object.values(data);
+        const query = `UPDATE ${this.tableName} SET ${columns} WHERE id = $1 RETURNING *`;
+        console.log('Executing query:', query, [id, ...values]);
+
+        const res = await pool.query(query, [id, ...values]);
+        
+        return res.rows[0] ? this.mapper(res.rows[0]) : null;
     }
 }
 

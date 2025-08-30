@@ -6,8 +6,16 @@ function createProductRouter(service) {
     router.get('/', async (req, res) => res.json(await service.getAll()));
     router.get('/:id', async (req, res) => res.json(await service.getById(req.params.id)));
 
-    // Proteger solo crear, actualizar y eliminar
-    router.post('/', async (req, res) => res.status(201).json(await service.create(req.body)));
+    // Proteger al crear productos
+    router.post('/', async (req, res, next) => {
+        try {
+            const created = await service.create(req.body);
+            res.status(201).json(created);
+        } catch (error) {
+            next(error); // Usa el middleware de manejo de errores
+        }
+    }); 
+    
     //eliminar productos con x cantidad
     router.put('/:id/:quantity', async (req, res) => {
         console.log(`ROUTER: ${req.params.id} en cantidad: ${req.params.quantity}`);

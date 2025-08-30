@@ -4,12 +4,8 @@
       <router-link to="/">Mi Tienda</router-link>
     </div>
 
-    <button
-      class="navbar__toggle"
-      @click="menuAbierto = !menuAbierto"
-      :aria-expanded="menuAbierto"
-      aria-label="Abrir menú"
-    >
+    <button class="navbar__toggle" @click="menuAbierto = !menuAbierto" :aria-expanded="menuAbierto"
+      aria-label="Abrir menú">
       <span :class="{ open: menuAbierto }"></span>
       <span :class="{ open: menuAbierto }"></span>
       <span :class="{ open: menuAbierto }"></span>
@@ -21,7 +17,8 @@
       <li class="cart">
         <router-link to="/cart" class="cart__link" aria-label="Ver carrito">
           <Icon icon="mdi:cart" width="24" />
-          <span v-if="cart.cantidadTotal > 0" class="cart__count" :aria-label="`${cart.cantidadTotal} productos en el carrito`">
+          <span v-if="cart.cantidadTotal > 0" class="cart__count"
+            :aria-label="`${cart.cantidadTotal} productos en el carrito`">
             {{ cart.cantidadTotal }}
           </span>
         </router-link>
@@ -37,7 +34,7 @@
       <li v-else>
         <router-link to="/login">Iniciar sesión</router-link>
       </li>
-      <li v-if="auth.isAuthenticated && auth.user?.role === 'Admin' ">
+      <li v-if="auth.isAuthenticated && auth.user?.role === 'Admin'">
         <router-link to="/admin">Panel admin</router-link>
       </li>
     </ul>
@@ -49,10 +46,12 @@ import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../../store/auth'
 import { useCartStore } from '../../store/cart'
+import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const cart = useCartStore()
 const menuAbierto = ref(false)
+const router = useRouter()
 
 const userNameCapitalized = computed(() => {
   console.log("User name:", auth.user?.name)
@@ -65,6 +64,8 @@ function logout() {
   auth.logout()
   menuAbierto.value = false
   cart.limpiar()
+  //window.location.href = '/'
+  router.push('/')
 }</script>
 
 <style scoped>
@@ -114,9 +115,11 @@ function logout() {
 .navbar__toggle span.open:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
 }
+
 .navbar__toggle span.open:nth-child(2) {
   opacity: 0;
 }
+
 .navbar__toggle span.open:nth-child(3) {
   transform: translateY(-6px) rotate(-45deg);
 }
@@ -130,15 +133,18 @@ function logout() {
   padding: 0;
   color: white;
 }
-ul li{
+
+ul li {
   text-decoration: none;
 }
-ul li:hover{
+
+ul li:hover {
   text-decoration: underline;
 }
+
 .navbar__links.open {
   border-bottom-left-radius: var(--border-radius);
-  border-bottom-right-radius: var(--border-radius); 
+  border-bottom-right-radius: var(--border-radius);
 }
 
 
@@ -155,6 +161,7 @@ ul li:hover{
   margin-left: 0.5rem;
   transition: color 0.2s ease;
 }
+
 .navbar__logout:hover {
   color: var(--color-primary-hover);
 }

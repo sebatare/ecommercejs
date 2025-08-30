@@ -1,7 +1,7 @@
 class Product {
     constructor({ id, name, description, price, stock, categories = [] }) {
-        if (!name) throw new Error('Product name is required');
-        if (price < 0) throw new Error('Price cannot be negative');
+        if (!name) throw new Error('Nombre del producto es obligatorio');
+        if (price < 0) throw new Error('El precio no puede ser menor a cero');
 
         this.id = id;
         this.name = name;

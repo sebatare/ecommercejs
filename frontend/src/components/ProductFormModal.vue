@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import api from '../utils/api-auth'
 import type { Product, Category } from '../types/index'
 
@@ -59,8 +59,12 @@ const error = ref('')
 
 onMounted(async () => {
     // Cargar categorías para el select
-    const { data } = await api.get('/categories')
-    categories.value = data
+    try {
+        const { data } = await api.get('/categories')
+        categories.value = data
+    } catch (e: any) {
+        error.value = 'Error al cargar las categorías.'
+    }
 
     if (props.product) {
         form.value = {
@@ -81,12 +85,22 @@ async function save() {
     loading.value = true
     error.value = ''
     try {
+        let response;
         if (props.product) {
-            await api.put(`/products/${props.product.id}`, form.value)
+            // Petición para editar un producto
+            response = await api.put(`/products/${props.product.id}`, form.value)
         } else {
-            await api.post('/products', form.value)
+            // Petición para crear un nuevo producto
+            response = await api.post('/products', form.value)
         }
-        emit('saved')
+
+        // Emitir el evento 'saved' con los datos del producto guardado
+        // Esto es lo que soluciona el problema de "updatedProduct is undefined"
+        emit('saved', response.data)
+
+        // Cerrar el modal una vez que se ha emitido el evento
+        emit('close')
+
     } catch (e: any) {
         error.value = e.response?.data?.error || 'Error al guardar'
     } finally {

@@ -86,7 +86,7 @@ class ProductRepository {
         }
     }
 
-    async create({ name, description, price, stock, categoryIds = [] }) {
+    async create({ name, description, price, stock, categoriesIds = [] }) {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -97,11 +97,11 @@ class ProductRepository {
             );
             const product = res.rows[0];
 
-            if (Array.isArray(categoryIds) && categoryIds.length > 0) {
-                const values = categoryIds.map((catId, idx) => `($1, $${idx + 2})`).join(', ');
+            if (Array.isArray(categoriesIds) && categoriesIds.length > 0) {
+                const values = categoriesIds.map((catId, idx) => `($1, $${idx + 2})`).join(', ');
                 await client.query(
                     `INSERT INTO product_categories (product_id, category_id) VALUES ${values}`,
-                    [product.id, ...categoryIds]
+                    [product.id, ...categoriesIds]
                 );
             }
 

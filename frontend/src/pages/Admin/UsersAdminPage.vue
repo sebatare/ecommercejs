@@ -8,7 +8,7 @@
         </div>
 
         <div v-else-if="error" class="error-message">
-            Error al cargar los datos: {{ error }}
+            La acción ha fallado: {{ error }}
         </div>
 
         <div v-else class="users-list-container">
@@ -31,18 +31,18 @@
             <form @submit.prevent="updateUser" class="edit-form">
                 <label for="name">Nombre:</label>
                 <input v-model="editUser.name" type="text" id="name" required />
-                
+
                 <label for="email">Email:</label>
                 <input v-model="editUser.email" type="email" id="email" required />
 
-                <label for="roleId">Rol:</label>
-                <select v-model.number="editUser.roleId" id="roleId" required>
+                <label for="role_id">Rol:</label>
+                <select v-model.number="editUser.role_id" id="role_id" required>
                     <option disabled value="">Seleccione un rol</option>
                     <option v-for="role in roles" :key="role.id" :value="role.id">
                         {{ role.name }}
                     </option>
                 </select>
-                
+
                 <div class="form-actions">
                     <button type="submit" class="save-button" :disabled="saving">
                         {{ saving ? 'Guardando...' : 'Guardar' }}
@@ -64,7 +64,7 @@ interface User {
     id: number;
     name: string;
     email: string;
-    roleId: number;
+    role_id: number;
 }
 
 interface Role {
@@ -86,7 +86,7 @@ const fetchUsers = async () => {
         id: user.id,
         name: user.name,
         email: user.email,
-        roleId: user.roleId,
+        role_id: user.roleId,
     }));
 };
 
@@ -116,14 +116,32 @@ const updateUser = async () => {
         await api.put(`/users/${editUser.value.id}`, {
             name: editUser.value.name,
             email: editUser.value.email,
-            roleId: editUser.value.roleId,
+            role_id: editUser.value.role_id,
         });
         console.log('Usuario actualizado con éxito');
         console.log(editUser.value);
         await fetchUsers(); // Refresca la lista
         editUser.value = null; // Cierra el formulario
     } catch (err: any) {
-        error.value = 'Error al actualizar el usuario. Verifique los datos.';
+        if(err.response){
+            switch(err.response.status){
+                case 400:
+                    error.value = 'Datos inválidos. Por favor verifica la información.';
+                    break;
+                case 403:
+                    error.value = 'No tiene autorización para realizar esta acción.';
+                    break;
+                case 404:
+                    error.value = 'Usuario no encontrado.';
+                    break;
+                case 500:
+                    error.value = 'Error del servidor. Intente nuevamente más tarde.';
+                    break;
+                default:
+                    error.value = 'Ocurrió un error inesperado.';
+            }
+        }
+        
     } finally {
         saving.value = false;
     }

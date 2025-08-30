@@ -7,7 +7,7 @@ function authorize(requiredRole) {
     return (req, res, next) => {
         // Asegurarse de que el usuario está autenticado (req.user existe)
         if (!req.user) {
-            return res.status(401).json({ message: 'Authentication required' });
+            return res.status(401).json({ message: 'Inicio de sesión requerida' });
         }
 
         // Verificar si el rol del usuario coincide con el rol requerido

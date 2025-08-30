@@ -19,6 +19,7 @@ class ProductService {
     }
 
     create(data) {
+        console.log("SERVICE - Datos recibidos para crear producto:", data);
         return this.productRepository.create(data);
     }
 

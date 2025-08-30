@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, type Ref } from 'vue'
 import api from './../../utils/api-auth'
 import ProductFormModal from '../../components/ProductFormModal.vue'
 import ConfirmDialog from '../../components/ConfirmDialog.vue'
@@ -85,18 +85,9 @@ const sortOrder = ref<'asc' | 'desc'>('asc')
 const itemsPerPage = 20
 const currentPage = ref(1)
 const showModal = ref(false)
-const selectedProduct = ref(null)
+const selectedProduct: Ref<Product | null> = ref(null)
 const showConfirm = ref(false)
-const productToDelete = ref<Product | null>(null)
-
-const paginatedProducts = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage
-    return filteredProducts.value.slice(start, start + itemsPerPage)
-})
-
-const totalPages = computed(() => {
-    return Math.ceil(filteredProducts.value.length / itemsPerPage)
-})
+const productToDelete: Ref<Product | null> = ref(null)
 
 const filteredProducts = computed(() => {
     const filtered = products.value.filter(product =>
@@ -107,13 +98,11 @@ const filteredProducts = computed(() => {
         let aValue: any = a[sortKey.value as keyof typeof a]
         let bValue: any = b[sortKey.value as keyof typeof b]
 
-        // Si ordenamos por categoría, usamos la primera categoría por simplicidad
         if (sortKey.value === 'categories') {
             aValue = a.categories[0]?.name || ''
             bValue = b.categories[0]?.name || ''
         }
 
-        // Normalizar para strings
         if (typeof aValue === 'string') aValue = aValue.toLowerCase()
         if (typeof bValue === 'string') bValue = bValue.toLowerCase()
 
@@ -121,6 +110,15 @@ const filteredProducts = computed(() => {
         if (aValue > bValue) return sortOrder.value === 'asc' ? 1 : -1
         return 0
     })
+})
+
+const paginatedProducts = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    return filteredProducts.value.slice(start, start + itemsPerPage)
+})
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredProducts.value.length / itemsPerPage)
 })
 
 onMounted(async () => {
@@ -143,22 +141,29 @@ function toggleSort(key: string) {
     }
 }
 
-function openModal(product = null) {
+function openModal(product: Product | null = null) {
     selectedProduct.value = product
     showModal.value = true
 }
 
-async function onProductSaved() {
-    // Opción 1: Recargar todos los productos (más simple y siempre actualizado)
-    loading.value = true
-    try {
-        const response = await api.get('/products')
-        products.value = response.data
-    } catch (error) {
-        console.error('Error al recargar productos:', error)
-    } finally {
-        loading.value = false
-        showModal.value = false
+async function onProductSaved(updatedProduct: Product) {
+    console.log("Producto guardado:", updatedProduct);
+    // 1. Verificar si el producto ya existe en la lista local
+    const index = products.value.findIndex(p => p.id === updatedProduct.id);
+
+    if (index !== -1) {
+        // 2. Si existe, lo actualizamos localmente
+        products.value[index] = updatedProduct;
+    } else {
+        // 3. Si es un producto nuevo, lo agregamos al final de la lista
+        products.value.push(updatedProduct);
+    }
+    
+    showModal.value = false;
+    
+    // Opcional: Volver a la primera página si se agregó un nuevo producto
+    if (index === -1) {
+        currentPage.value = 1;
     }
 }
 
@@ -166,6 +171,7 @@ function askDeleteProduct(product: Product) {
     productToDelete.value = product
     showConfirm.value = true
 }
+
 async function deleteAllProduct() {
     if (!productToDelete.value) return
     await deleteProduct(productToDelete.value.id)
@@ -195,6 +201,7 @@ function cancelDelete() {
     showConfirm.value = false
 }
 
+// Lógica de eliminación unificada
 async function deleteProduct(id: number) {
     try {
         await api.delete(`/products/${id}`)
@@ -206,8 +213,14 @@ async function deleteProduct(id: number) {
 
 async function deleteProductQuantity(id: number, quantity: number) {
     try {
-        console.log(`Eliminando ${quantity} unidades del producto con ID: ${id}`)
-        await api.put(`/products/${id}/${quantity}`)
+        await api.put(`/products/${id}`, { quantity: quantity })
+        // Actualizar localmente si la API devuelve el producto actualizado
+        // const response = await api.put(...)
+        // const updatedProduct = response.data;
+        // const index = products.value.findIndex(p => p.id === updatedProduct.id);
+        // if (index !== -1) {
+        //     products.value[index] = updatedProduct;
+        // }
     } catch (error) {
         alert('Error al eliminar cantidad')
     }
