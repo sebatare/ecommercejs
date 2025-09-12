@@ -3,10 +3,12 @@ export interface Product {
   id: number
   name: string
   description: string
-  createdAt: string
+  createdAt: string 
   price: number
   stock: number
   categories: Category[]
+  discount_percentage: number
+  imageUrl: string
 }
 export interface Category {
   id: number
@@ -21,6 +23,7 @@ export interface User {
   createdAt: number
   role: string
   cart: Cart | null
+  imageUrl: string
 }
 
 // Auth.ts

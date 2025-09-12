@@ -32,6 +32,9 @@ const categoryNames = [
     await pool.query('DELETE FROM carts');
     await pool.query('DELETE FROM orders');
     await pool.query('DELETE FROM users');
+    await pool.query('DELETE FROM product_views');
+    await pool.query('DELETE FROM product_reviews');
+    await pool.query('DELETE FROM roles');
 
     // Insertar usuario admin
     const adminName = 'Admin';

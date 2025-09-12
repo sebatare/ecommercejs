@@ -77,16 +77,16 @@ function logout() {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: var(--color-secondary);
+  background: #f9f9f9;
   color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-radius: var(--border-radius);
+  height: 9rem;
 }
 
 .navbar__logo a {
   font-size: 1.8rem;
   font-weight: bold;
-  color: white;
+  color: #2d2d2d !important;
   text-decoration: none;
 }
 
@@ -131,7 +131,7 @@ function logout() {
   list-style: none;
   margin: 0;
   padding: 0;
-  color: white;
+  color: #2d2d2d;
 }
 
 ul li {
