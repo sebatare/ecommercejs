@@ -22,28 +22,48 @@ const categoryNames = [
   try {
     await pool.connect();
 
-    // Limpiar tablas en orden correcto para evitar errores de FK
-    await pool.query('DELETE FROM product_categories');
-    await pool.query('DELETE FROM products');
-    await pool.query('DELETE FROM categories');
-    await pool.query('DELETE FROM cart_items');
-    await pool.query('DELETE FROM order_items');
-    await pool.query('DELETE FROM wishlist');
-    await pool.query('DELETE FROM carts');
-    await pool.query('DELETE FROM orders');
-    await pool.query('DELETE FROM users');
-    await pool.query('DELETE FROM product_views');
-    await pool.query('DELETE FROM product_reviews');
-    await pool.query('DELETE FROM roles');
+    // 🔥 Limpiar todas las tablas
+    await pool.query(`
+      TRUNCATE 
+        product_views,
+        product_reviews,
+        product_categories,
+        cart_items,
+        order_items,
+        wishlist,
+        carts,
+        orders,
+        products,
+        categories,
+        users,
+        roles
+      RESTART IDENTITY CASCADE
+    `);
+
+    // Insertar roles base
+    await pool.query(`INSERT INTO roles (name) VALUES ('cliente'), ('admin')`);
 
     // Insertar usuario admin
-    const adminName = 'Admin';
-    const adminEmail = 'admin@admin.com';
-    const adminPassword = 'admin123'; // Puedes hashearlo si lo deseas
-    await pool.query(
-      'INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4)',
-      [adminName, adminEmail, adminPassword, 2]
+    const adminRes = await pool.query(
+      'INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id',
+      ['Admin', 'admin@admin.com', 'admin123', 2]
     );
+    const adminId = adminRes.rows[0].id;
+
+    // Crear usuarios adicionales
+    const userIds = [adminId];
+    for (let i = 0; i < 10; i++) {
+      const res = await pool.query(
+        'INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id',
+        [
+          faker.person.fullName(),
+          faker.internet.email(),
+          faker.internet.password(),
+          1, // cliente
+        ]
+      );
+      userIds.push(res.rows[0].id);
+    }
 
     // Insertar categorías
     const categoryIds = [];
@@ -55,31 +75,28 @@ const categoryNames = [
       categoryIds.push(res.rows[0].id);
     }
 
-    // Insertar productos y vincular con categorías
+    // Insertar productos
+    const productIds = [];
     const insertProductQuery = `
-      INSERT INTO products (name, description, price, stock, image_url)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO products (name, description, price, stock, image_url, discount_percentage)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id
     `;
 
     for (let i = 0; i < 100; i++) {
-      const name = faker.commerce.productName();
-      const description = faker.commerce.productDescription();
-      const price = parseFloat(faker.commerce.price());
-      const stock = Math.floor(Math.random() * 100);
-      const image_url = faker.image.url();
-
       const prodRes = await pool.query(insertProductQuery, [
-        name,
-        description,
-        price,
-        stock,
-        image_url,
+        faker.commerce.productName(),
+        faker.commerce.productDescription(),
+        parseFloat(faker.commerce.price()),
+        Math.floor(Math.random() * 100),
+        faker.image.url(),
+        Math.floor(Math.random() * 30), // descuento hasta 30%
       ]);
       const productId = prodRes.rows[0].id;
+      productIds.push(productId);
 
-      // Vincular el producto con 1 o 2 categorías aleatorias
-      const shuffled = categoryIds.sort(() => 0.5 - Math.random());
+      // Vincular con 1 o 2 categorías
+      const shuffled = [...categoryIds].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, Math.random() < 0.5 ? 1 : 2);
       for (const catId of selected) {
         await pool.query(
@@ -89,7 +106,39 @@ const categoryNames = [
       }
     }
 
-    console.log('✅ Seed con productos y categorías completada');
+    // Insertar vistas aleatorias
+    for (const productId of productIds) {
+      const numViews = Math.floor(Math.random() * 30);
+      for (let i = 0; i < numViews; i++) {
+        await pool.query(
+          'INSERT INTO product_views (product_id, user_id, viewed_at) VALUES ($1, $2, $3)',
+          [
+            productId,
+            faker.helpers.arrayElement(userIds),
+            faker.date.recent({ days: 30 }),
+          ]
+        );
+      }
+    }
+
+    // Insertar reviews aleatorias
+    for (const productId of productIds) {
+      const numReviews = Math.floor(Math.random() * 10);
+      for (let i = 0; i < numReviews; i++) {
+        await pool.query(
+          'INSERT INTO product_reviews (product_id, user_id, rating, comment, created_at) VALUES ($1, $2, $3, $4, $5)',
+          [
+            productId,
+            faker.helpers.arrayElement(userIds),
+            faker.number.int({ min: 1, max: 5 }),
+            faker.lorem.sentence(),
+            faker.date.recent({ days: 60 }),
+          ]
+        );
+      }
+    }
+
+    console.log('✅ Seed con productos, categorías, vistas y reviews completada');
   } catch (err) {
     console.error('❌ Error al hacer seed:', err);
   } finally {

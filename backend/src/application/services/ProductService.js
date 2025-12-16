@@ -18,6 +18,14 @@ class ProductService {
         return product;
     }
 
+    async getProductsByView(){
+        const products = await this.productRepository.findProductsByView();
+        if (!products || products.length === 0) {
+            throw new NotFoundError('No se encontraron productos por vistas');
+        }
+        return products;
+    }
+
     create(data) {
         console.log("SERVICE - Datos recibidos para crear producto:", data);
         return this.productRepository.create(data);

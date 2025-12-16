@@ -1,5 +1,5 @@
 class Product {
-    constructor({ id, name, description, price, stock, categories = [] }) {
+    constructor({ id, name, description, price, stock, categories = [], discount_percentage = 0, imageUrl = '' }) {
         if (!name) throw new Error('Nombre del producto es obligatorio');
         if (price < 0) throw new Error('El precio no puede ser menor a cero');
 
@@ -10,6 +10,9 @@ class Product {
         this.price = price;
         this.stock = stock;
         this.categories = categories;
+        this.discount_percentage = discount_percentage;
+        this.imageUrl = imageUrl;
+
     }
 
 

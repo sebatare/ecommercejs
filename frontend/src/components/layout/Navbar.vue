@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar" aria-label="Navegación principal">
-    <div class="navbar__logo">
+    <div className="text-5xl text-gray-900 font-bold">
       <router-link to="/">Mi Tienda</router-link>
     </div>
 
@@ -142,6 +142,10 @@ ul li:hover {
   text-decoration: underline;
 }
 
+.navbar__logo {
+  margin-left: 4rem;
+}
+
 .navbar__links.open {
   border-bottom-left-radius: var(--border-radius);
   border-bottom-right-radius: var(--border-radius);
@@ -191,18 +195,38 @@ ul li:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .navbar {
+    height: 6rem;
+    position: inherit;
+  }
+
+  .navbar__links {
+    top: 6rem;
+
+  }
+
   .navbar__toggle {
     display: flex;
+    color: #2d2d2d;
+  }
+
+  .navbar__toggle span {
+    background: #2d2d2d;
+  }
+
+  .navbar__toggle button:focus {
+    outline: #f9f9f9;
+    outline-offset: 223px;
   }
 
   .navbar__links {
     flex-direction: column;
     align-items: flex-start;
     position: absolute;
-    top: 64px;
+    top: 6rem;
     left: 0;
     right: 0;
-    background: var(--color-secondary);
+    background: #2d2d2d;
     padding: 1rem 2rem;
     gap: 1rem;
     max-height: 0;
@@ -210,6 +234,8 @@ ul li:hover {
     pointer-events: none;
     transition: all 0.3s ease;
     overflow: hidden;
+    color: white;
+    z-index: 99;
   }
 
   .navbar__links.open {

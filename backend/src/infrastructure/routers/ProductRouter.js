@@ -29,6 +29,15 @@ function createProductRouter(service) {
         res.status(204).send();
     });
 
+    router.get('/views/top', async (req, res, next) => {
+        try {
+            const products = await service.getProductsByView();
+            res.json(products);
+        } catch (error) {
+            next(error); // Usa el middleware de manejo de errores
+        }
+    });
+
 
     return router;
 }

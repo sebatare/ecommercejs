@@ -13,6 +13,8 @@ class ProductRepository {
                     p.created_at,
                     p.price,
                     p.stock,
+                    p.discount_percentage,
+                    p.image_url,
                     COALESCE(
                         json_agg(
                             jsonb_build_object(
@@ -35,7 +37,9 @@ class ProductRepository {
                 createdAt: row.created_date,
                 price: row.price,
                 stock: row.stock,
-                categories: row.categories
+                categories: row.categories,
+                discount_percentage: row.discount_percentage,
+                imageUrl: row.image_url
             }));
         } catch (error) {
             console.error('Error en findAll:', error);
@@ -53,6 +57,8 @@ class ProductRepository {
                     p.created_at,
                     p.price,
                     p.stock,
+                    p.discount_percentage,
+                    p, image_url,
                     COALESCE(
                         json_agg(
                             jsonb_build_object(
@@ -78,6 +84,8 @@ class ProductRepository {
                 createdAt: row.created_date,
                 price: row.price,
                 stock: row.stock,
+                discount_percentage: row.discount_percentage,
+                imageUrl: row.image_url,
                 categories: row.categories
             });
         } catch (error) {
@@ -186,6 +194,35 @@ class ProductRepository {
         } catch (error) {
             console.error('Error en deleteByQuantity:', error);
             throw new Error('No se pudo disminuir el stock del producto');
+        }
+    }
+
+    async findProductsByView() {
+        try {
+            const res = await pool.query(`
+                SELECT 
+                p.id, 
+                p.name, 
+                p.image_url, 
+                p.discount_percentage,
+                COUNT(v.id) AS total_views
+                FROM products p
+                LEFT JOIN product_views v ON p.id = v.product_id
+                GROUP BY p.id, p.name, p.image_url, p.discount_percentage
+                ORDER BY total_views DESC, p.name ASC
+                LIMIT 10;
+            `);
+
+            return res.rows.map(row => ({
+                id: row.id,
+                name: row.name,
+                imageUrl: row.image_url,
+                discount_percentage: row.discount_percentage,
+                total_views: parseInt(row.total_views, 10)
+            }));
+        } catch (error) {
+            console.error('Error en findProductsByView:', error);
+            throw new Error('No se pudieron obtener los productos por vistas');
         }
     }
 }

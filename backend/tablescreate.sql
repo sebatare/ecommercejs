@@ -83,3 +83,21 @@ CREATE TABLE product_categories
     category_id INT REFERENCES categories(id),
     PRIMARY KEY (product_id, category_id)
 );
+
+CREATE TABLE product_views
+(
+    id SERIAL PRIMARY KEY,
+    product_id INT REFERENCES products(id),
+    user_id INT REFERENCES users(id),
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE product_reviews
+(
+    id SERIAL PRIMARY KEY,
+    product_id INT REFERENCES products(id),
+    user_id INT REFERENCES users(id),
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
