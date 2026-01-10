@@ -1,59 +1,63 @@
 const express = require('express');
 const cors = require('cors');
-// Error handling middleware
+
 const errorHandler = require('./middleware/errorHandler');
-// Product management
+const authenticate = require('./middleware/authenticate');
+
+// Services & repos
 const ProductService = require('./application/services/ProductService');
 const ProductRepository = require('./infrastructure/repositories/ProductRepository');
-const createProductRouter = require('./infrastructure/routers/ProductRouter');
-// Authentication and User management
 const AuthService = require('./application/services/AuthService');
 const UserRepository = require('./infrastructure/repositories/UserRepository');
-const authenticate = require('./middleware/authenticate');
-const createAuthRouter = require('./infrastructure/routers/AuthRouter');
-const createUserRouter = require('./infrastructure/routers/UserRouter');
-//Roles
 const RoleService = require('./application/services/RoleService');
 const RoleRepository = require('./infrastructure/repositories/RoleRepository');
-const createRoleRouter = require('./infrastructure/routers/RoleRouter');
-
-// Category management
 const CategoryRepository = require('./infrastructure/repositories/CategoryRepository');
-const createCategoryRouter = require('./infrastructure/routers/CategoryRouter');
-
-// CART INJECTION
-
 const CartService = require('./application/services/CartService');
 const CartRepository = require('./infrastructure/repositories/CartRepository');
 
+// Routers
+const createProductRouter = require('./infrastructure/routers/ProductRouter');
+const createAuthRouter = require('./infrastructure/routers/AuthRouter');
+const createUserRouter = require('./infrastructure/routers/UserRouter');
+const createRoleRouter = require('./infrastructure/routers/RoleRouter');
+const createCategoryRouter = require('./infrastructure/routers/CategoryRouter');
 const createCartRouter = require('./infrastructure/routers/CartRouter');
 
-
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: '*',
+  credentials: true,
+}));
 app.use(express.json());
 
+// Dependency injection
+app.use('/api/products', createProductRouter(
+  new ProductService(new ProductRepository())
+));
 
-const productService = new ProductService(new ProductRepository());
-app.use('/api/products', createProductRouter(productService));
+app.use('/api/auth', createAuthRouter(
+  new AuthService(new UserRepository(), new CartRepository())
+));
 
-const authService = new AuthService(new UserRepository());
-app.use('/api/auth', createAuthRouter(authService));
+app.use('/api/users', createUserRouter(
+  new UserRepository()
+));
 
-const userRepository = new UserRepository();
-app.use('/api/users', createUserRouter(userRepository));
+app.use('/api/roles', createRoleRouter(
+  new RoleService(new RoleRepository())
+));
 
-const roleService = new RoleService(new RoleRepository());
-app.use('/api/roles', createRoleRouter(roleService));
+app.use('/api/categories', createCategoryRouter(
+  new CategoryRepository()
+));
 
-const cartService = new CartService(new CartRepository());
-app.use('/api/cart', authenticate, createCartRouter(cartService));
+app.use(
+  '/api/cart',
+  authenticate,
+  createCartRouter(new CartService(new CartRepository()))
+);
 
-const categoryRepository = new CategoryRepository();
-app.use('/api/categories', createCategoryRouter(categoryRepository));
-
-
-// Middleware de manejo de errores
 app.use(errorHandler);
 
-app.listen(3002, () => console.log('Servidor en http://localhost:3002'));
+module.exports = app;

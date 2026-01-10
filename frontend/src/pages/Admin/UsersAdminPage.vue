@@ -118,8 +118,6 @@ const updateUser = async () => {
             email: editUser.value.email,
             role_id: editUser.value.role_id,
         });
-        console.log('Usuario actualizado con éxito');
-        console.log(editUser.value);
         await fetchUsers(); // Refresca la lista
         editUser.value = null; // Cierra el formulario
     } catch (err: any) {

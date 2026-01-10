@@ -1,6 +1,5 @@
 const pool = require('../db/pool');
 const Cart = require('../../domain/Cart');
-const CartItem = require('../../domain/CartItem');
 
 
 class CartRepository {
@@ -8,15 +7,17 @@ class CartRepository {
 
     }
     async createCart(userId) {
-        try {
-            const res = await pool.query(
-                'INSERT INTO carts (user_id) VALUES ($1) RETURNING *',
-                [userId]
-            );
-            return new Cart(res.rows[0]);
-        } catch (error) {
-            throw error; // No lo envolvemos
-        }
+        const res = await pool.query(
+            'INSERT INTO carts (user_id) VALUES ($1) RETURNING *',
+            [userId]
+        );
+        const row = res.rows[0];
+        return new Cart({
+            id: row.id,
+            userId: row.user_id,
+            createdAt: row.created_at,
+            items: []
+        });
     }
 
     // Obtiene el carrito y sus items para un usuario
@@ -33,17 +34,22 @@ class CartRepository {
 
         // Ahora obtenemos los items del carrito
         const itemsRes = await pool.query(
-            `SELECT ci.product_id, ci.quantity, p.name as product_name
+            `SELECT ci.product_id, ci.quantity, p.name as product_name, p.price as product_price, p.image_url
              FROM cart_items ci
              JOIN products p ON ci.product_id = p.id
              WHERE ci.cart_id = $1`,
             [cart.id]
         );
+        cart.id = cartRes.rows[0].id;
+        cart.userId = cartRes.rows[0].user_id;
+        cart.createdAt = cartRes.rows[0].created_at;
         // Mapear para incluir nombre y cantidad
         cart.items = itemsRes.rows.map(row => ({
             productId: row.product_id,
             productName: row.product_name,
-            quantity: row.quantity
+            quantity: row.quantity,
+            price: row.product_price,
+            imageUrl: row.image_url
         }));
 
         return cart;
@@ -98,7 +104,6 @@ class CartRepository {
             client.release();
         }
     }
-
 
     async removeItem(cartId, productId) {
         await pool.query(

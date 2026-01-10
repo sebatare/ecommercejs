@@ -9,6 +9,7 @@ export interface Product {
   categories: Category[]
   discount_percentage: number
   imageUrl: string
+  rate: number
 }
 export interface Category {
   id: number
@@ -17,10 +18,10 @@ export interface Category {
 
 // Usuario.ts
 export interface User {
-  id: number
+  id: string
   name: string
   email: string
-  createdAt: number
+  createdAt: number | null
   role: string
   cart: Cart | null
   imageUrl: string
@@ -49,6 +50,15 @@ export interface CartItem {
   id: number
   cartId: number
   productId: number
+  productName: string
+  imageUrl: string
   quantity: number
   price: number
+}
+
+export interface GoogleJwtPayload {
+  email: string
+  name: string
+  picture: string
+  sub: string
 }

@@ -1,24 +1,42 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library')
+const authenticate = require('../../middleware/authenticate')
+
 
 function createAuthRouter(authService) {
     const router = express.Router();
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-    router.post('/register',
+    router.post(
+        '/register',
+        // Validaciones de transporte / UX (no negocio)
         body('name').notEmpty(),
         body('email').isEmail(),
-        body('password').isLength({ min: 6 }),
+        body('password').notEmpty(), // solo existencia, no complejidad
         async (req, res) => {
+            
+            // Validación HTTP
             const errors = validationResult(req);
-            if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
 
             try {
+                // Delegación total al service
                 const user = await authService.register(req.body);
-                res.status(201).json(user);
+                return res.status(201).json(user);
             } catch (err) {
-                res.status(400).json({ error: err.message });
+                // Error de dominio: política de contraseña
+                if (err instanceof InvalidPasswordError) {
+                    return res.status(400).json({ error: err.reason });
+                }
+
+                // Errores de negocio genéricos (email duplicado, etc.)
+                return res.status(400).json({ error: err.message });
             }
-        });
+        }
+    );
 
     router.post('/login',
         body('email').isEmail(),
@@ -35,6 +53,41 @@ function createAuthRouter(authService) {
             }
         });
 
+
+
+    // Endpoint para login con Google que devuelve JWT propio
+    router.post('/google', async (req, res) => {
+        const { token } = req.body;
+
+        try {
+            const ticket = await client.verifyIdToken({
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            });
+            const payload = ticket.getPayload();
+            const { token: appToken, user } = await authService.loginWithGoogle({ email: payload.email });
+            res.status(200).json({
+                message: 'Login exitoso',
+                user,
+                token: appToken
+            });
+        } catch (error) {
+            console.error('Error en google-login:', error);
+            res.status(401).json({ message: 'Token de Google inválido', error: error.message });
+        }
+    });
+
+    // Ruta para obtener el usuario autenticado
+    router.get('/me', authenticate, async (req, res) => {
+        try {
+            // Opcional: puedes buscar el usuario actualizado en la base de datos usando req.user.id
+            // const user = await authService.getUserById(req.user.id)
+            // res.json({ user })
+            res.json({ user: req.user })
+        } catch (error) {
+            res.status(500).json({ error: 'Error al obtener usuario autenticado' })
+        }
+    });
 
     return router;
 }

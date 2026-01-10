@@ -27,7 +27,6 @@ class BaseRepository {
         const columns = Object.keys(data).map((key, index) => `${key} = $${index + 2}`).join(', ');
         const values = Object.values(data);
         const query = `UPDATE ${this.tableName} SET ${columns} WHERE id = $1 RETURNING *`;
-        console.log('Executing query:', query, [id, ...values]);
 
         const res = await pool.query(query, [id, ...values]);
         

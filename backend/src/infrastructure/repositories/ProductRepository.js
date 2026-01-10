@@ -205,6 +205,8 @@ class ProductRepository {
                 p.name, 
                 p.image_url, 
                 p.discount_percentage,
+                p.price,
+                p.rate,
                 COUNT(v.id) AS total_views
                 FROM products p
                 LEFT JOIN product_views v ON p.id = v.product_id
@@ -218,7 +220,9 @@ class ProductRepository {
                 name: row.name,
                 imageUrl: row.image_url,
                 discount_percentage: row.discount_percentage,
-                total_views: parseInt(row.total_views, 10)
+                total_views: parseInt(row.total_views, 10),
+                price: row.price,
+                rate: row.rate
             }));
         } catch (error) {
             console.error('Error en findProductsByView:', error);

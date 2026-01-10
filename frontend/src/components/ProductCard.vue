@@ -3,7 +3,7 @@
         class="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
         <!-- Image Container -->
         <div class="relative pt-[100%] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-            <img :src="product.imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80'"
+            <img :src="product.imageUrl || 'placeholder.jpg'"
                 :alt="product.name"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
 
@@ -64,7 +64,7 @@
                         ★
                     </span>
                 </div>
-                <span class="text-sm text-gray-600 font-semibold">{{ product.price }}</span>
+                <span class="text-sm text-gray-600 font-semibold">{{ product.rate }}</span>
             </div>
 
             <!-- Footer con precio y botón -->

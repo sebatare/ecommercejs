@@ -23,11 +23,15 @@ class ProductService {
         if (!products || products.length === 0) {
             throw new NotFoundError('No se encontraron productos por vistas');
         }
+        for (const product of products) {
+            if(!product.rate){
+                product.rate = 3; // Asignar valor predeterminado si no existe
+            }
+        }
         return products;
     }
 
     create(data) {
-        console.log("SERVICE - Datos recibidos para crear producto:", data);
         return this.productRepository.create(data);
     }
 
@@ -40,7 +44,7 @@ class ProductService {
     }
 
     deleteByQuantity(id, quantity) {
-        console.log(`SERBICIO: ${id} en cantidad: ${quantity}`);
+        console.log(`SERVICIO: ${id} en cantidad: ${quantity}`);
         if (quantity <= 0) {
             throw new Error("La cantidad debe ser mayor que cero");
         }

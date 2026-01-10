@@ -43,19 +43,19 @@ const slides = [
   {
     title: "Bienvenido a Nuestro Ecommerce",
     subtitle: "Descubre los mejores productos al mejor precio",
-    image: "/images/banner1.jpg",
+    image: "images/banner1.jpg",
     bg: "from-blue-600 to-indigo-700",
   },
   {
     title: "Nuevas Colecciones",
     subtitle: "Explora las últimas tendencias",
-    image: "/images/banner2.jpg",
+    image: "images/banner2.jpg",
     bg: "from-pink-500 to-red-500",
   },
   {
     title: "Ofertas Especiales",
     subtitle: "Descuentos exclusivos por tiempo limitado",
-    image: "/images/banner3.jpg",
+    image: "images/banner3.jpg",
     bg: "from-green-500 to-emerald-700",
   },
 ];

@@ -20,30 +20,12 @@ class UserRepository extends BaseRepository {
     }
 
     async create({ name, email, password, roleId }) {
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-            // 1. Crear el usuario
-            const resUser = await client.query(
-                `INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING *`,
-                [name, email, password, roleId]
-            );
-            const user = resUser.rows[0];
-
-            // 2. Crear el carrito asociado al usuario
-            await client.query(
-                `INSERT INTO carts (user_id) VALUES ($1)`,
-                [user.id]
-            );
-
-            await client.query('COMMIT');
-            return new User(user);
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
+        const resUser = await pool.query(
+            `INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING *`,
+            [name, email, password, roleId]
+        );
+        const user = resUser.rows[0];
+        return new User(user);
     }
 
     async findAll() {

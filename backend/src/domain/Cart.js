@@ -4,6 +4,7 @@ class Cart {
     this.userId = userId;
     this.createdAt = createdAt;
     this.items = items; // Array de CartItem
+    
   }
 
   getTotal() {

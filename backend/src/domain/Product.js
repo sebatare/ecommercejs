@@ -12,6 +12,7 @@ class Product {
         this.categories = categories;
         this.discount_percentage = discount_percentage;
         this.imageUrl = imageUrl;
+        this.rate = 3;
 
     }
 
