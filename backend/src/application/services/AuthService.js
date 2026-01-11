@@ -1,79 +1,92 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const SECRET = process.env.JWT_SECRET
 const Password = require('../../domain/value-objects/Password');
-
-const SECRET = process.env.JWT_SECRET || 'secreto-super-seguro';
-
-
+const jwt = require('jsonwebtoken');
+const RegisteredEmailError = require('../../domain/errors/auth/RegisteredEmailError');
 class AuthService {
     constructor(userRepository, cartRepository) {
         this.userRepository = userRepository;
         this.cartRepository = cartRepository;
     }
 
+    // ===============================
+    // MÉTODO PRIVADO PARA CREAR TOKEN
+    // ===============================
+    _generateToken(user) {
+        const role = user.role || (user.roleId === 2 ? 'admin' : 'cliente');
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role, name: user.name },
+            SECRET,
+            { expiresIn: '2h' }
+        );
+        return token;
+    }
+
     async register({ name, email, password, isAdmin = false }) {
-        //Creacion del Value Object Password con su logica de negocio
-        // Si es inválida, lanza error de dominio automáticamente
+        // 1. Validar contraseña (esto lanza InvalidPasswordError si es inválida)
         const passwordVO = Password.create(password);
 
+        // 2. Verificar email duplicado
         const existingUser = await this.userRepository.findByEmail(email);
         if (existingUser) {
-            throw new Error('El email ya está registrado');
+            throw new RegisteredEmailError(email);
         }
-        const roleId = isAdmin ? 2 : 1; // Asignar rol según isAdmin
-        const hashedPassword = await passwordVO.hash(password, 10);
-        const user = await this.userRepository.create({ name, email, password: hashedPassword, roleId: roleId }); // Asignar rol por defecto
-        // Crear el carrito asociado al usuario
+
+        // 3. Hashear y crear usuario
+        const roleId = isAdmin ? 2 : 1;
+        const hashedPassword = await passwordVO.hash();  // ✅ Sin parámetros
+
+        const user = await this.userRepository.create({
+            name,
+            email,
+            password: hashedPassword,
+            roleId
+        });
+
+        user.role = isAdmin ? 'admin' : 'cliente';
         const cart = await this.cartRepository.createCart(user.id);
-        return { ...user, cart };
+        const token = this._generateToken(user);
+        return { ...user, cart, token };
     }
 
     async login({ email, password }) {
         const user = await this.userRepository.findByEmail(email);
-        if (!user) {
-            throw new Error('Credenciales inválidas');
-        }
+        if (!user) throw new Error('Credenciales inválidas');
 
-        const passwordVO = Password.create(password);
-        const valid = await passwordVO.matches(user.password);
-        if (!valid) {
-            throw new Error('Credenciales inválidas');
-        }
+        // Crear VO desde el hash almacenado (sin validación)
+        const hashedPasswordVO = Password.fromHash(user.password);
+        const valid = await hashedPasswordVO.matches(password);
 
-        // Crear y firmar el token
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role, name: user.name },
-            SECRET,
-            { expiresIn: '2h' }
-        );
+        if (!valid) throw new Error('Credenciales inválidas');
 
-        return { token, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+        const token = this._generateToken(user);
+        return {
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        };
     }
 
     async loginWithGoogle({ email }) {
         let user = await this.userRepository.findByEmail(email);
         if (!user) {
-            // Si no existe, crear usuario (puedes ajustar el rol y otros campos según tu lógica)
             user = await this.userRepository.create({
                 email,
                 name: '',
-                password: null, // No hay password para Google
+                password: null,
                 imageUrl: '',
-                roleId: 1 // Rol por defecto
+                roleId: 1
             });
-            // Crear el carrito asociado al usuario
             await this.cartRepository.createCart(user.id);
         }
-        // Generar JWT propio
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role, name: user.name },
-            SECRET,
-            { expiresIn: '2h' }
-        );
+
+        // Generamos token con el mismo método
+        const token = this._generateToken(user);
+
         return { token, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
     }
 }
-
-
-
 module.exports = AuthService;

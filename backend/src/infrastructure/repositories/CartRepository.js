@@ -12,12 +12,7 @@ class CartRepository {
             [userId]
         );
         const row = res.rows[0];
-        return new Cart({
-            id: row.id,
-            userId: row.user_id,
-            createdAt: row.created_at,
-            items: []
-        });
+        return new Cart(row);
     }
 
     // Obtiene el carrito y sus items para un usuario

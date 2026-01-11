@@ -1,11 +1,8 @@
-// Error semántico de dominio
-
 class InvalidPasswordError extends Error {
-    constructor(reason) {
-        super(reason);
+    constructor(message = 'Contraseña inválida') {
+        super(message);
         this.name = 'InvalidPasswordError';
-        this.reason = reason;
     }
 }
 
-module.exports = InvalidPasswordError;
+module.exports = InvalidPasswordError;  // Default export, not named export

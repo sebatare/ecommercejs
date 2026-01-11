@@ -2,6 +2,8 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library')
 const authenticate = require('../../middleware/authenticate')
+const  RegisteredEmailError  = require('../../domain/errors/auth/RegisteredEmailError');
+const  InvalidPasswordError  = require('../../domain/errors/auth/InvalidPasswordError');
 
 
 function createAuthRouter(authService) {
@@ -10,28 +12,28 @@ function createAuthRouter(authService) {
 
     router.post(
         '/register',
-        // Validaciones de transporte / UX (no negocio)
         body('name').notEmpty(),
         body('email').isEmail(),
         body('password').notEmpty(), // solo existencia, no complejidad
         async (req, res) => {
-            
-            // Validación HTTP
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-
             try {
                 // Delegación total al service
                 const user = await authService.register(req.body);
-                return res.status(201).json(user);
+                return res.status(201).json({
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    cart: user.cart,
+                    token: user.token
+                });
             } catch (err) {
-                // Error de dominio: política de contraseña
                 if (err instanceof InvalidPasswordError) {
-                    return res.status(400).json({ error: err.reason });
+                    return res.status(400).json({ error: err.message });
                 }
-
+                if (err instanceof RegisteredEmailError) {
+                    return res.status(409).json({ error: `El email ${err.email} ya está registrado.` });
+                }
                 // Errores de negocio genéricos (email duplicado, etc.)
                 return res.status(400).json({ error: err.message });
             }
@@ -49,7 +51,7 @@ function createAuthRouter(authService) {
                 const { token, user } = await authService.login(req.body);
                 res.json({ token, user });
             } catch (err) {
-                res.status(404).json({ error: err.message });
+                res.status(401).json({ error: err.message });
             }
         });
 

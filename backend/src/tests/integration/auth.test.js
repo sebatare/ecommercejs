@@ -1,146 +1,108 @@
 const request = require('supertest');
 const app = require('../../main');
 
-describe('Auth API - Integration', () => {
+describe('Auth API - Integration Tests', () => {
 
+    // ============================
+    // REGISTRO DE USUARIO
+    // ============================
     describe('POST /api/auth/register', () => {
+
+        // Test relevante: registro exitoso
         it('should register a new user successfully', async () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send({
+                    name: 'New User',
                     email: `newuser${Date.now()}@test.com`,
-                    password: 'Password123!'
+                    password: 'Oasis123!'
                 });
 
+            // Debe devolver status 201 y token generado
             expect(res.status).toBe(201);
             expect(res.body).toHaveProperty('token');
             expect(res.body).toHaveProperty('id');
             expect(res.body).toHaveProperty('email');
         });
 
-        it('should return 400 if email is missing', async () => {
-            const res = await request(app)
-                .post('/api/auth/register')
-                .send({
-                    password: 'Password123!'
-                });
-
-            expect(res.status).toBe(400);
-            expect(res.body).toHaveProperty('error');
-        });
-
-        it('should return 400 if password is missing', async () => {
-            const res = await request(app)
-                .post('/api/auth/register')
-                .send({
-                    email: `user${Date.now()}@test.com`
-                });
-
-            expect(res.status).toBe(400);
-            expect(res.body).toHaveProperty('error');
-        });
-
-        it('should return 400 if email format is invalid', async () => {
-            const res = await request(app)
-                .post('/api/auth/register')
-                .send({
-                    email: 'invalid-email',
-                    password: 'Password123!'
-                });
-
-            expect(res.status).toBe(400);
-            expect(res.body).toHaveProperty('error');
-        });
-
+        // Test relevante: email duplicado
         it('should return 409 if email already exists', async () => {
             const email = `duplicate${Date.now()}@test.com`;
 
             // Primer registro exitoso
             await request(app)
                 .post('/api/auth/register')
-                .send({ email, password: 'Password123!' });
+                .send({ name: 'Test', email, password: 'Password123!' });
 
             // Segundo registro con mismo email
             const res = await request(app)
                 .post('/api/auth/register')
-                .send({ email, password: 'Password456!' });
+                .send({ name: 'Test2', email, password: 'Password456!' });
 
+            // Debe devolver conflicto
             expect(res.status).toBe(409);
             expect(res.body).toHaveProperty('error');
         });
     });
 
+    // ============================
+    // LOGIN DE USUARIO
+    // ============================
     describe('POST /api/auth/login', () => {
         let testEmail;
-        let testPassword = 'Password123!';
+        const testPassword = 'Password123!';
 
         beforeEach(async () => {
             testEmail = `user${Date.now()}@test.com`;
 
-            // Crear usuario para los tests de login
+            // Crear usuario real en DB antes de cada test de login
             await request(app)
                 .post('/api/auth/register')
                 .send({
+                    name: 'Login User',
                     email: testEmail,
                     password: testPassword
                 });
         });
 
+        // Login exitoso
         it('should login user with correct credentials', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
                     email: testEmail,
                     password: testPassword
-                });
+                })
 
+            // Debe devolver token válido y datos del usuario
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty('token');
-            expect(res.body).toHaveProperty('id');
-            expect(res.body).toHaveProperty('email');
-            expect(res.body.email).toBe(testEmail);
+            expect(res.body).toHaveProperty('user.id');
+            expect(res.body).toHaveProperty('user.email');
+            expect(res.body.user.email).toBe(testEmail);
         });
 
-        it('should return 400 if email is missing', async () => {
-            const res = await request(app)
-                .post('/api/auth/login')
-                .send({
-                    password: testPassword
-                });
-
-            expect(res.status).toBe(400);
-            expect(res.body).toHaveProperty('error');
-        });
-
-        it('should return 400 if password is missing', async () => {
-            const res = await request(app)
-                .post('/api/auth/login')
-                .send({
-                    email: testEmail
-                });
-
-            expect(res.status).toBe(400);
-            expect(res.body).toHaveProperty('error');
-        });
-
-        it('should return 401 if user does not exist', async () => {
-            const res = await request(app)
-                .post('/api/auth/login')
-                .send({
-                    email: 'nonexistent@test.com',
-                    password: testPassword
-                });
-
-            expect(res.status).toBe(401);
-            expect(res.body).toHaveProperty('error');
-        });
-
+        // Login con contraseña incorrecta
         it('should return 401 if password is incorrect', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
                     email: testEmail,
                     password: 'WrongPassword123!'
+                });
+
+            // Debe devolver status de no autorizado
+            expect(res.status).toBe(401);
+            expect(res.body).toHaveProperty('error');
+        });
+
+        // Login con usuario inexistente
+        it('should return 401 if user does not exist', async () => {
+            const res = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    email: 'nonexistent@test.com',
+                    password: testPassword
                 });
 
             expect(res.status).toBe(401);

@@ -44,6 +44,9 @@ class CartService {
         let cart
         try {
             cart = await this.cartRepository.getCart(userId)
+            if (!cart) {
+                throw new Error('Carrito no encontrado')
+            }
         } catch (error) {
             // Si no existe, lo creamos
             cart = await this.cartRepository.createCart(userId)

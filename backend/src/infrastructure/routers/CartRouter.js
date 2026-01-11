@@ -20,7 +20,7 @@ function createCartRouter(service) {
         }
     });
 
-    router.get('/get-cart', async (req, res) => {
+    router.get('/', async (req, res) => {
         const userId = req.user?.id
         if (!userId) {
             return res.status(401).json({ error: 'No autorizado' })

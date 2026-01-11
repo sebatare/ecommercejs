@@ -92,7 +92,7 @@ export const useCartStore = defineStore('cart', {
       if (!auth.isAuthenticated) return
 
       try {
-        const { data } = await api.get('/cart/get-cart', {
+        const { data } = await api.get('/cart/', {
           headers: { Authorization: `Bearer ${auth.token}` },
         })
 

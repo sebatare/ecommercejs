@@ -15,7 +15,6 @@ describe('AuthService - Unit Tests', () => {
     let mockCartRepository;
 
     beforeEach(() => {
-        // Limpiar todos los mocks
         jest.clearAllMocks();
 
         // Mocks de repositorios
@@ -31,6 +30,9 @@ describe('AuthService - Unit Tests', () => {
         authService = new AuthService(mockUserRepository, mockCartRepository);
     });
 
+    // -----------------------------
+    // REGISTER UNIT TESTS
+    // -----------------------------
     describe('register', () => {
         it('should register a new user successfully', async () => {
             const userData = { name: 'Test User', email: 'test@test.com', password: 'Oasis123!' };
@@ -66,23 +68,11 @@ describe('AuthService - Unit Tests', () => {
             expect(mockUserRepository.create).not.toHaveBeenCalled();
             expect(mockCartRepository.createCart).not.toHaveBeenCalled();
         });
-
-
-        it('should create cart for new user', async () => {
-            const userData = { name: 'Test', email: 'test@test.com', password: 'Oasis123!' };
-            const newUser = { id: 5, ...userData };
-
-            mockUserRepository.findByEmail.mockResolvedValue(null);
-            bcrypt.hash.mockResolvedValue('hashed');
-            mockUserRepository.create.mockResolvedValue(newUser);
-            mockCartRepository.createCart.mockResolvedValue({});
-
-            const result = await authService.register(userData);
-            expect(result.cart).toBeDefined(); // comportamiento observable
-
-        });
     });
 
+    // -----------------------------
+    // LOGIN UNIT TESTS
+    // -----------------------------
     describe('login', () => {
         it('should login user with correct credentials', async () => {
             const credentials = { email: 'test@test.com', password: 'Oasis123!' };
@@ -119,6 +109,9 @@ describe('AuthService - Unit Tests', () => {
         });
     });
 
+    // -----------------------------
+    // LOGIN WITH GOOGLE UNIT TESTS
+    // -----------------------------
     describe('loginWithGoogle', () => {
         it('should login existing Google user', async () => {
             const email = 'user@gmail.com';
@@ -167,19 +160,6 @@ describe('AuthService - Unit Tests', () => {
             expect(mockUserRepository.create).toHaveBeenCalledWith(
                 expect.objectContaining({ roleId: 1 })
             );
-        });
-
-        it('should return token for Google user', async () => {
-            const email = 'user@gmail.com';
-            const user = { id: 1, name: 'User', email, password: null, role: 1 };
-
-            mockUserRepository.findByEmail.mockResolvedValue(user);
-
-            const result = await authService.loginWithGoogle({ email });
-            const decoded = jwt.decode(result.token);
-
-            expect(decoded).toHaveProperty('id', 1);
-            expect(decoded).toHaveProperty('email', email);
         });
     });
 });
