@@ -46,8 +46,8 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import apiPublic from '../../utils/api-public' // Usamos la instancia de API pública
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../store/auth'
 
 const form = reactive({
   name: '',
@@ -61,6 +61,14 @@ const success = ref(false)
 const loading = ref(false)
 
 const router = useRouter()
+const auth = useAuthStore()
+
+const errorMessages: Record<string, string> = {
+  PASSWORD_TOO_SHORT: 'La contraseña debe tener al menos 6 caracteres',
+  PASSWORD_NO_NUMBER: 'La contraseña debe contener al menos un número',
+  PASSWORD_NO_UPPERCASE: 'La contraseña debe contener una letra mayúscula',
+  EMAIL_ALREADY_EXISTS: 'Este correo ya está registrado',
+}
 
 const registrar = async () => {
   error.value = ''
@@ -73,43 +81,47 @@ const registrar = async () => {
 
   loading.value = true
   try {
-    const response = await apiPublic.post('/auth/register', {
+    // ✅ Usamos la acción del store, no axios directamente
+    await auth.register({
       name: form.name,
       email: form.email,
       password: form.password,
-    })
+    }, router)
 
     success.value = true
-    // Opcional: Limpiar el formulario después del registro exitoso
+
+    // Limpiamos formulario
     form.name = ''
     form.email = ''
     form.password = ''
     form.confirm = ''
 
-    // Opcional: Redirigir al usuario después de un tiempo
+    // Redirigir al login (o home si auto-login)
     setTimeout(() => {
-      router.push('/login')
+      router.push('/')
     }, 2000)
   } catch (err: any) {
-    // Manejo de errores más detallado
-    if (err.response && err.response.data) {
-      if (err.response.data.errors) {
-        // Errores de validación de Express Validator
-        error.value = err.response.data.errors.map((e: any) => e.msg).join(', ')
-      } else if (err.response.data.error) {
-        // Errores generales del backend
-        error.value = err.response.data.error
+    // Manejo de errores desde el store
+    if (auth.error) {
+      error.value = auth.error
+    } else if (err.response?.data) {
+      const { code, message } = err.response.data
+      if (code && errorMessages[code]) {
+        error.value = errorMessages[code]
+      } else if (message) {
+        error.value = message
       } else {
-        error.value = 'Error al crear la cuenta. Por favor, intenta de nuevo.'
+        error.value = 'Error al crear la cuenta'
       }
     } else {
-      error.value = 'Error de conexión con el servidor. Verifica tu red.'
+      error.value = 'Error de conexión con el servidor'
     }
   } finally {
     loading.value = false
   }
 }
 </script>
+
 
 <style scoped>
 .register-page {

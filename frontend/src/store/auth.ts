@@ -1,17 +1,20 @@
 // src/store/auth.ts
 import { defineStore } from 'pinia'
 import api from '../utils/api-auth'
-import type { User, LoginPayload, AuthResponse } from '../types'
+import type { User, LoginPayload, RegisterPayload, AuthResponse } from '../types'
 import { jwtDecode } from 'jwt-decode'
 import { useCartStore } from './cart'
+import type { Router } from 'vue-router'
 
 const TOKEN_KEY = 'token'
+const isDev = process.env.NODE_ENV  
 
 interface DecodedToken {
   id: string
   name: string
   email: string
   role: string
+  roleId: number
   createdAt?: number
   imageUrl?: string
   exp?: number
@@ -27,6 +30,7 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: state => !!state.token && !!state.user,
+    
     isAdmin: state => state.user?.role === 'Admin',
 
     isTokenExpired: state => {
@@ -37,6 +41,11 @@ export const useAuthStore = defineStore('auth', {
       } catch {
         return true
       }
+    },
+
+    currentUser: state => {
+      if (!state.user) throw new Error('Usuario no autenticado')
+      return state.user
     },
   },
 
@@ -52,12 +61,17 @@ export const useAuthStore = defineStore('auth', {
         this.user = data.user
         this.persistirToken(data.token)
 
-        // 🔑 Sync carrito post-login
+        // Sincronizar carrito post-login
         const cart = useCartStore()
         await cart.sincronizarConBackendRemoto()
 
+
       } catch (error: any) {
-        this.error = error.response?.data?.message || 'Error al iniciar sesión'
+        const errorMsg = error.response?.data?.error || 
+                        error.response?.data?.message || 
+                        'Error al iniciar sesión'
+        this.error = errorMsg
+        if (isDev) console.error('❌ Error en login:', errorMsg)
         throw error
       } finally {
         this.loading = false
@@ -76,30 +90,41 @@ export const useAuthStore = defineStore('auth', {
         const cart = useCartStore()
         await cart.sincronizarConBackendRemoto()
 
-      } catch (error) {
+
+      } catch (error: any) {
         this.error = 'Error en login con Google'
+        if (isDev) console.error('❌ Error en Google login:', error)
         throw error
       } finally {
         this.loading = false
       }
     },
 
-    async register(payload: LoginPayload): Promise<void> {
+    async register(payload: RegisterPayload, router: Router): Promise<void> {
       this.loading = true
       this.error = null
 
       try {
         const { data } = await api.post<AuthResponse>('/auth/register', payload)
-
+        
         this.token = data.token
         this.user = data.user
         this.persistirToken(data.token)
 
+        // Sincronizar carrito post-registro
         const cart = useCartStore()
         await cart.sincronizarConBackendRemoto()
 
-      } catch (error) {
-        this.error = 'Error al registrarse'
+        
+        // Solo navegar si todo fue exitoso
+        router.push('/')
+
+      } catch (error: any) {
+        const errorMsg = error.response?.data?.error || 
+                        error.response?.data?.message || 
+                        'Error al registrarse'
+        this.error = errorMsg
+        if (isDev) console.error('❌ Error en registro:', errorMsg)
         throw error
       } finally {
         this.loading = false
@@ -122,7 +147,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         if (!this.token || this.isTokenExpired) {
-          this.logout()
+          await this.logout()
           return
         }
 
@@ -133,6 +158,7 @@ export const useAuthStore = defineStore('auth', {
           name: decoded.name,
           email: decoded.email,
           role: decoded.role,
+          roleId: decoded.roleId || null,
           createdAt: decoded.createdAt || null,
           imageUrl: decoded.imageUrl || '',
           cart: null,
@@ -140,19 +166,25 @@ export const useAuthStore = defineStore('auth', {
 
         await this.verificarTokenConBackend()
 
-      } catch {
-        this.logout()
+      } catch (error) {
+        if (isDev) console.error('❌ Error inicializando token:', error)
+        await this.logout()
       } finally {
         this.loading = false
       }
     },
 
     async verificarTokenConBackend(): Promise<void> {
-      const { data } = await api.get('/auth/me', {
-        headers: { Authorization: `Bearer ${this.token}` },
-      })
+      try {
+        const { data } = await api.get('/auth/me', {
+          headers: { Authorization: `Bearer ${this.token}` },
+        })
 
-      this.user = data.user
+        this.user = data.user
+      } catch (error) {
+        if (isDev) console.error('❌ Error verificando token con backend:', error)
+        throw error
+      }
     },
 
     persistirToken(token: string): void {

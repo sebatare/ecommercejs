@@ -147,7 +147,6 @@ function openModal(product: Product | null = null) {
 }
 
 async function onProductSaved(updatedProduct: Product) {
-    console.log("Producto guardado:", updatedProduct);
     // 1. Verificar si el producto ya existe en la lista local
     const index = products.value.findIndex(p => p.id === updatedProduct.id);
 

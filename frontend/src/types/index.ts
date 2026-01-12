@@ -22,16 +22,23 @@ export interface User {
   name: string
   email: string
   createdAt: number | null
+  roleId: number | null
   role: string
   cart: Cart | null
   imageUrl: string
 }
 
 // Auth.ts
-export interface LoginPayload {
-  email: string
-  password: string
-}
+    export interface LoginPayload {
+      email: string
+      password: string
+    }
+
+    export interface RegisterPayload {
+      name: string
+      email: string
+      password: string
+    }
 
 export interface AuthResponse {
   token: string
@@ -62,3 +69,5 @@ export interface GoogleJwtPayload {
   picture: string
   sub: string
 }
+
+
