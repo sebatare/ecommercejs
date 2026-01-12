@@ -19,10 +19,10 @@ class UserRepository extends BaseRepository {
         return res.rows[0] ? new User(res.rows[0]) : null;
     }
 
-    async create({ name, email, password, roleId }) {
+    async create({ name, email, createdAt, roleId, password }) {
         const resUser = await pool.query(
-            `INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING *`,
-            [name, email, password, roleId]
+            `INSERT INTO users (name, email, created_at, password, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [name, email, createdAt, password, roleId]
         );
         const user = resUser.rows[0];
         return new User(user);

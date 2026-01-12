@@ -19,8 +19,8 @@ describe('CartService - Unit Tests', () => {
         cartService = new CartService(mockCartRepository);
     });
 
-    describe('createCart', () => {
-        it('should create a cart with valid userId', async () => {
+    describe('Creación de carrito', () => {
+        it('Crear carrito con userId válido', async () => {
             const mockCart = { id: 1, userId: 1 };
             mockCartRepository.createCart.mockResolvedValue(mockCart);
 
@@ -31,30 +31,30 @@ describe('CartService - Unit Tests', () => {
             expect(mockCartRepository.createCart).toHaveBeenCalledTimes(1);
         });
 
-        it('should throw CartValidationError if userId is missing', async () => {
+        it('Crear carrito con userId nulo', async () => {
             await expect(cartService.createCart(null)).rejects.toThrow(CartValidationError);
             expect(mockCartRepository.createCart).not.toHaveBeenCalled();
         });
 
-        it('should throw CartValidationError if userId is undefined', async () => {
+        it('Crear carrito con userId indefinido', async () => {
             await expect(cartService.createCart(undefined)).rejects.toThrow(CartValidationError);
         });
 
-        it('should handle PostgreSQL NOT NULL error', async () => {
+        it('Manejar error de PostgreSQL NOT NULL', async () => {
             const error = { code: '23502', column: 'user_id' };
             mockCartRepository.createCart.mockRejectedValue(error);
 
             await expect(cartService.createCart(1)).rejects.toThrow(CartValidationError);
         });
 
-        it('should handle PostgreSQL FK violation error', async () => {
+        it('Manejar error de PostgreSQL FK violation', async () => {
             const error = { code: '23503', constraint: 'fk_user' };
             mockCartRepository.createCart.mockRejectedValue(error);
 
             await expect(cartService.createCart(999)).rejects.toThrow(CartValidationError);
         });
 
-        it('should handle PostgreSQL Unique violation error', async () => {
+        it('Manejar error de PostgreSQL Unique violation', async () => {
             const error = { code: '23505' };
             mockCartRepository.createCart.mockRejectedValue(error);
 
@@ -62,8 +62,8 @@ describe('CartService - Unit Tests', () => {
         });
     });
 
-    describe('getCart', () => {
-        it('should return existing cart', async () => {
+    describe('Obtener carrito', () => {
+        it('Obtener carrito existente', async () => {
             const mockCart = { id: 1, userId: 1, items: [] };
             mockCartRepository.getCart.mockResolvedValue(mockCart);
 
@@ -73,22 +73,11 @@ describe('CartService - Unit Tests', () => {
             expect(mockCartRepository.getCart).toHaveBeenCalledWith(1);
         });
 
-        it('should throw NotAuthorizedError if userId is missing', async () => {
+        it('Lanzar error de autorización al obtener carrito', async () => {
             await expect(cartService.getCart(null)).rejects.toThrow(NotAuthorizedError);
         });
 
-        it('should create new cart if getCart fails', async () => {
-            const newCart = { id: 2, userId: 1, items: [] };
-            mockCartRepository.getCart.mockRejectedValue(new Error('Not found'));
-            mockCartRepository.createCart.mockResolvedValue(newCart);
-
-            const result = await cartService.getCart(1);
-
-            expect(result).toEqual(newCart);
-            expect(mockCartRepository.createCart).toHaveBeenCalledWith(1);
-        });
-
-        it('should return empty items array when cart is created as fallback', async () => {
+        it('Obtener carrito vacío al crear nuevo carrito como fallback', async () => {
             const newCart = { id: 2, userId: 1 };
             mockCartRepository.getCart.mockRejectedValue(new Error('Not found'));
             mockCartRepository.createCart.mockResolvedValue(newCart);
@@ -99,8 +88,8 @@ describe('CartService - Unit Tests', () => {
         });
     });
 
-    describe('getAllCarts', () => {
-        it('should return all carts', async () => {
+    describe('Obtener todos los carritos', () => {
+        it('Obtener todos los carritos', async () => {
             const mockCarts = [
                 { id: 1, userId: 1 },
                 { id: 2, userId: 2 }
@@ -113,15 +102,15 @@ describe('CartService - Unit Tests', () => {
             expect(mockCartRepository.getAllCarts).toHaveBeenCalledTimes(1);
         });
 
-        it('should throw error if repository fails', async () => {
+        it('Manejar error de base de datos al obtener todos los carritos', async () => {
             mockCartRepository.getAllCarts.mockRejectedValue(new Error('DB error'));
 
             await expect(cartService.getAllCarts()).rejects.toThrow();
         });
     });
 
-    describe('updateItems', () => {
-        it('should update cart items with valid cartId', async () => {
+    describe('Actualizar items del carrito', () => {
+        it('Actualizar items del carrito con ID válido', async () => {
             const updates = [{ productId: 1, quantity: 2 }];
             mockCartRepository.updateCartItems.mockResolvedValue(undefined);
 
@@ -130,7 +119,7 @@ describe('CartService - Unit Tests', () => {
             expect(mockCartRepository.updateCartItems).toHaveBeenCalledWith(1, updates);
         });
 
-        it('should throw error if cartId is missing', async () => {
+        it('Lanzar error de validación al actualizar items del carrito', async () => {
             const updates = [{ productId: 1, quantity: 2 }];
 
             await expect(cartService.updateItems(null, updates)).rejects.toThrow();
@@ -138,21 +127,18 @@ describe('CartService - Unit Tests', () => {
         });
     });
 
-    describe('clearCart', () => {
-        it('should clear cart items', async () => {
+    describe('Limpiar carrito', () => {
+        it('Entrega carrito limpio', async () => {
             mockCartRepository.clearCart.mockResolvedValue(undefined);
 
             await cartService.clearCart(1);
 
             expect(mockCartRepository.clearCart).toHaveBeenCalledWith(1);
         });
+        it('Manejar error al limpiar carrito', async () => {
+            mockCartRepository.clearCart.mockRejectedValue(new Error('DB error'));
 
-        it('should pass userId to repository', async () => {
-            mockCartRepository.clearCart.mockResolvedValue(undefined);
-
-            await cartService.clearCart(5);
-
-            expect(mockCartRepository.clearCart).toHaveBeenCalledWith(5);
+            await expect(cartService.clearCart(1)).rejects.toThrow('DB error');
         });
     });
 });

@@ -24,5 +24,6 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
+  await pool.query('DELETE FROM users');
   await pool.end();
 });

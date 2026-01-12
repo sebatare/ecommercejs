@@ -1,7 +1,9 @@
-const SECRET = process.env.JWT_SECRET
+const SECRET = process.env.JWT_SECRET;
+//if (!SECRET) throw new Error('JWT_SECRET no está definido en el .env');
 const Password = require('../../domain/value-objects/Password');
 const jwt = require('jsonwebtoken');
 const RegisteredEmailError = require('../../domain/errors/auth/RegisteredEmailError');
+const { user } = require('pg/lib/defaults');
 class AuthService {
     constructor(userRepository, cartRepository) {
         this.userRepository = userRepository;
@@ -11,10 +13,9 @@ class AuthService {
     // ===============================
     // MÉTODO PRIVADO PARA CREAR TOKEN
     // ===============================
-    _generateToken(user) {
-        const role = user.role || (user.roleId === 2 ? 'admin' : 'cliente');
+    _generateToken(userEntity) {
         const token = jwt.sign(
-            { id: user.id, email: user.email, role, name: user.name },
+            { id: userEntity.id, email: userEntity.email, role: userEntity.role, name: userEntity.name },
             SECRET,
             { expiresIn: '2h' }
         );
@@ -22,39 +23,60 @@ class AuthService {
     }
 
     async register({ name, email, password, isAdmin = false }) {
-        // 1. Validar contraseña (esto lanza InvalidPasswordError si es inválida)
+
+        // 1️⃣ Validación de dominio
         const passwordVO = Password.create(password);
 
-        // 2. Verificar email duplicado
+        // 2️⃣ Regla de negocio: email único
         const existingUser = await this.userRepository.findByEmail(email);
         if (existingUser) {
             throw new RegisteredEmailError(email);
         }
 
-        // 3. Hashear y crear usuario
+        // 3️⃣ Preparar datos de persistencia
         const roleId = isAdmin ? 2 : 1;
-        const hashedPassword = await passwordVO.hash();  // ✅ Sin parámetros
+        const role = isAdmin ? 'admin' : 'cliente';
 
-        const user = await this.userRepository.create({
+        const hashedPassword = await Password.hash(passwordVO.value);
+
+        // 4️⃣ Crear usuario (ENTITY)
+        const userEntity = await this.userRepository.create({
             name,
             email,
             password: hashedPassword,
-            roleId
+            roleId,
+            //imageUrl: null,
+            createdAt: new Date(),
         });
 
-        user.role = isAdmin ? 'admin' : 'cliente';
-        const cart = await this.cartRepository.createCart(user.id);
-        const token = this._generateToken(user);
-        return { ...user, cart, token };
+        const cartEntity = await this.cartRepository.createCart(userEntity.id);
+
+
+        const userDto = {
+            id: userEntity.id,
+            name: userEntity.name,
+            email: userEntity.email,
+            roleId: roleId,
+            role: role,
+            cart: {
+                id: cartEntity.id,
+                items: []
+            }
+        };
+        const token = this._generateToken(userDto);
+        return {
+            user: userDto,
+            token
+        };
     }
 
     async login({ email, password }) {
         const user = await this.userRepository.findByEmail(email);
+
         if (!user) throw new Error('Credenciales inválidas');
 
-        // Crear VO desde el hash almacenado (sin validación)
-        const hashedPasswordVO = Password.fromHash(user.password);
-        const valid = await hashedPasswordVO.matches(password);
+        const valid = await Password.compare(password, user.password);
+
 
         if (!valid) throw new Error('Credenciales inválidas');
 

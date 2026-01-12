@@ -179,7 +179,6 @@ class ProductRepository {
         if (quantity <= 0) {
             throw new Error("La cantidad debe ser mayor que cero");
         }
-        console.log(`Disminuyendo stock del producto ID: ${id} en cantidad: ${quantity}`);
         try {
             // Disminuir el stock
             const res = await pool.query(

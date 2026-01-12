@@ -18,7 +18,6 @@ function createProductRouter(service) {
     
     //eliminar productos con x cantidad
     router.put('/:id/:quantity', async (req, res) => {
-        console.log(`ROUTER: ${req.params.id} en cantidad: ${req.params.quantity}`);
         await service.deleteByQuantity(req.params.id, req.params.quantity);
         res.status(204).send();
     });

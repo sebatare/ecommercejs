@@ -44,7 +44,6 @@ class ProductService {
     }
 
     deleteByQuantity(id, quantity) {
-        console.log(`SERVICIO: ${id} en cantidad: ${quantity}`);
         if (quantity <= 0) {
             throw new Error("La cantidad debe ser mayor que cero");
         }

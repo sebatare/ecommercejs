@@ -1,8 +1,11 @@
+// domain/errors/auth/InvalidPasswordError.js
 class InvalidPasswordError extends Error {
-    constructor(message = 'Contraseña inválida') {
-        super(message);
-        this.name = 'InvalidPasswordError';
-    }
+  constructor(code, message) {
+    super(message);
+    this.name = 'InvalidPasswordError';
+    this.code = code;
+    this.statusCode = 400;
+  }
 }
 
-module.exports = InvalidPasswordError;  // Default export, not named export
+module.exports = InvalidPasswordError;

@@ -18,7 +18,6 @@ function createRoleRouter(service) {
 
     router.delete('/:id', authenticate,authorize('admin'), async (req, res, next) => {
         try {
-            console.log("DELETE /roles/:id called");
             const id = parseInt(req.params.id);
             await service.delete(id);
             res.json({ message: 'Rol eliminado' });

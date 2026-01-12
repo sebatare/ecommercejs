@@ -5,6 +5,7 @@ function createCartRouter(service) {
 
     router.post('/create', async (req, res) => {
         const userId = req.user?.id;
+
         try {
             const cart = await service.createCart(userId);
             res.status(201).json(cart);
@@ -15,8 +16,9 @@ function createCartRouter(service) {
                     field: error.field
                 });
             }
+            console.error(error);
 
-            res.status(500).json({ error: 'Error interno' });
+            res.status(500).json({ error: 'Error interno', details: error.message });
         }
     });
 

@@ -1,11 +1,22 @@
 const request = require('supertest');
 const app = require('../../main');
+/*
+Tests:
+    - Registro de usuario exitoso
+    - Registro de usuario fallido - email duplicado
+    - Registro de usuario fallido - datos inválidos
+    
+    - Login de usuario
 
+
+*/
 describe('Auth API - Integration Tests', () => {
 
-    // ============================
-    // REGISTRO DE USUARIO
-    // ============================
+    // Registro Exitoso
+    // Registro Fallido - email duplicado
+    
+    // Registro Fallido - datos inválidos
+
     describe('POST /api/auth/register', () => {
 
         // Test relevante: registro exitoso
@@ -21,8 +32,8 @@ describe('Auth API - Integration Tests', () => {
             // Debe devolver status 201 y token generado
             expect(res.status).toBe(201);
             expect(res.body).toHaveProperty('token');
-            expect(res.body).toHaveProperty('id');
-            expect(res.body).toHaveProperty('email');
+            expect(res.body).toHaveProperty('user.id');
+            expect(res.body).toHaveProperty('user.email');
         });
 
         // Test relevante: email duplicado
@@ -41,7 +52,13 @@ describe('Auth API - Integration Tests', () => {
 
             // Debe devolver conflicto
             expect(res.status).toBe(409);
-            expect(res.body).toHaveProperty('error');
+            expect(res.body).toEqual(
+                expect.objectContaining({
+                    code: 'EMAIL_ALREADY_EXISTS',
+                    message: expect.any(String),
+                })
+            );
+
         });
     });
 

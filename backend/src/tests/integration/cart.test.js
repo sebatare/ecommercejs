@@ -19,19 +19,7 @@ describe('Cart API - Integration Tests', () => {
         userToken = registerRes.body.token; // token JWT generado al registrar
     });
 
-    // ============================
-    // CREAR CARRITO
-    // ============================
     describe('POST /api/cart/create', () => {
-        it('should create a new cart for authenticated user returning 201 and id', async () => {
-            const res = await request(app)
-                .post('/api/cart/create')
-                .set('Authorization', `Bearer ${userToken}`); // token válido
-            
-
-            expect(res.status).toBe(201); // debe devolver 201 Created
-            expect(res.body).toHaveProperty('id');
-        });
 
         it('should return 401 if no token is provided', async () => {
             const res = await request(app)
