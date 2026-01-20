@@ -7,3 +7,5 @@ backend/src/infrastructure/db/pool.js
 backend/.env
 backend/seed.js
 backend/tests/
+.vscode/
+docker-compose.yml
