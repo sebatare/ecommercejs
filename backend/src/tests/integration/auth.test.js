@@ -28,12 +28,19 @@ describe('Auth API - Integration Tests', () => {
                     email: `newuser${Date.now()}@test.com`,
                     password: 'Oasis123!'
                 });
+            // Debe devolver token y datos del usuario
 
-            // Debe devolver status 201 y token generado
             expect(res.status).toBe(201);
             expect(res.body).toHaveProperty('token');
-            expect(res.body).toHaveProperty('user.id');
-            expect(res.body).toHaveProperty('user.email');
+            expect(res.body.user).toHaveProperty('id');
+            expect(res.body.user).toHaveProperty('name', 'New User');
+            expect(res.body.user).toHaveProperty('email');
+            expect(res.body.user).toHaveProperty('createdAt');
+            expect(res.body.user).toHaveProperty('role');
+            expect(res.body.user).toHaveProperty('cart');
+            expect(res.body.user.cart).toHaveProperty('id');
+            expect(res.body.user.cart).toHaveProperty('items');
+            expect(Array.isArray(res.body.user.cart.items)).toBe(true);
         });
 
         // Test relevante: email duplicado

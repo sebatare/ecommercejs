@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const SECRET = process.env.JWT_SECRET;
 
 function authenticate(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -11,9 +11,9 @@ function authenticate(req, res, next) {
     const token = authHeader.split(' ')[1];
 
     try {
-        
+
         const payload = jwt.verify(token, SECRET);
-        
+
         if (!payload.role) {
             return res.status(401).json({ error: 'No tiene rol' });
         }

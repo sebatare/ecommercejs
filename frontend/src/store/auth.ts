@@ -157,7 +157,6 @@ export const useAuthStore = defineStore('auth', {
           name: decoded.name,
           email: decoded.email,
           role: decoded.role,
-          roleId: decoded.roleId || null,
           createdAt: decoded.createdAt || null,
           imageUrl: decoded.imageUrl || '',
           cart: null,

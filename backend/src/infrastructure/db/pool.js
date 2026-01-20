@@ -2,7 +2,7 @@
 require('dotenv').config(); // Carga las variables de .env
 const { Pool } = require('pg');
 
-const isTest = process.env.APP_ENV === 'development';
+const isTest = process.env.APP_ENV === 'test';
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -11,6 +11,9 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD,
     port: parseInt(process.env.DB_PORT, 10),
 });
+
+
+console.log('Base de datos:', isTest ? process.env.DB_TEST_NAME : process.env.DB_NAME);
 
 pool.on('connect', () => {
 

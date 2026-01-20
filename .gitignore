@@ -11,3 +11,4 @@ docker-compose.yml
 backend/# Ejecutar TODOS los tests (unit + integ.sh
 backend/Dockerfile
 backend/schema.sql
+.github/copilot-instructions.md

@@ -22,7 +22,6 @@ export interface User {
   name: string
   email: string
   createdAt: number | null
-  roleId: number | null
   role: string | null
   cart: Cart | null
   imageUrl: string

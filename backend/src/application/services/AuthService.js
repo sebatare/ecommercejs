@@ -58,7 +58,6 @@ class AuthService {
             name: userEntity.name,
             email: userEntity.email,
             createdAt: new Date(),
-            roleId: roleId,
             role: role,
             cart: {
                 id: cartEntity.id,

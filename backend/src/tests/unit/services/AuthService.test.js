@@ -86,7 +86,6 @@ describe('AuthService - Unit Tests', () => {
                     id: createdUser.id,
                     name: createdUser.name,
                     email: createdUser.email,
-                    roleId: createdUser.roleId,
                     cart: {
                         id: createdCart.id,
                         items: []
