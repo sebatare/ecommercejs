@@ -23,7 +23,7 @@ export interface User {
   email: string
   createdAt: number | null
   roleId: number | null
-  role: string
+  role: string | null
   cart: Cart | null
   imageUrl: string
 }

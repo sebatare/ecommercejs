@@ -7,7 +7,7 @@ import { useCartStore } from './cart'
 import type { Router } from 'vue-router'
 
 const TOKEN_KEY = 'token'
-const isDev = process.env.NODE_ENV  
+const USER_KEY = 'user'
 
 interface DecodedToken {
   id: string
@@ -31,7 +31,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: state => !!state.token && !!state.user,
     
-    isAdmin: state => state.user?.role === 'Admin',
+    isAdmin: state => state.user?.role === 'admin',
 
     isTokenExpired: state => {
       if (!state.token) return true
@@ -59,7 +59,9 @@ export const useAuthStore = defineStore('auth', {
 
         this.token = data.token
         this.user = data.user
+
         this.persistirToken(data.token)
+        this.persistirUser(data.user)
 
         // Sincronizar carrito post-login
         const cart = useCartStore()
@@ -71,7 +73,6 @@ export const useAuthStore = defineStore('auth', {
                         error.response?.data?.message || 
                         'Error al iniciar sesión'
         this.error = errorMsg
-        if (isDev) console.error('❌ Error en login:', errorMsg)
         throw error
       } finally {
         this.loading = false
@@ -93,7 +94,6 @@ export const useAuthStore = defineStore('auth', {
 
       } catch (error: any) {
         this.error = 'Error en login con Google'
-        if (isDev) console.error('❌ Error en Google login:', error)
         throw error
       } finally {
         this.loading = false
@@ -124,7 +124,6 @@ export const useAuthStore = defineStore('auth', {
                         error.response?.data?.message || 
                         'Error al registrarse'
         this.error = errorMsg
-        if (isDev) console.error('❌ Error en registro:', errorMsg)
         throw error
       } finally {
         this.loading = false
@@ -167,7 +166,6 @@ export const useAuthStore = defineStore('auth', {
         await this.verificarTokenConBackend()
 
       } catch (error) {
-        if (isDev) console.error('❌ Error inicializando token:', error)
         await this.logout()
       } finally {
         this.loading = false
@@ -182,13 +180,17 @@ export const useAuthStore = defineStore('auth', {
 
         this.user = data.user
       } catch (error) {
-        if (isDev) console.error('❌ Error verificando token con backend:', error)
         throw error
       }
     },
 
     persistirToken(token: string): void {
       localStorage.setItem(TOKEN_KEY, token)
+    },
+
+    persistirUser(user: User) {
+      this.user = user            // Guardamos en el estado
+      localStorage.setItem(USER_KEY, JSON.stringify(user))
     },
 
     clearError(): void {

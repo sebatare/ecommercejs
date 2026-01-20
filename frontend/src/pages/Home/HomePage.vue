@@ -144,7 +144,7 @@ const agregarAlCarrito = (producto: Product) => {
 
 const verDetalleProducto = (producto: Product) => {
     // Implementar lógica para ver detalle (modal, navegación, etc.)
-    console.log('Ver detalle:', producto)
+
 }
 </script>
 

@@ -103,7 +103,7 @@ const onSubmit = async () => {
 
 const loginWithFacebook = () => {
     // Implementar OAuth con Facebook
-    console.log('Login con Facebook')
+    
     // window.location.href = 'TU_BACKEND_URL/auth/facebook'
 }
 
