@@ -5,6 +5,5 @@ frontend/.env
 frontend/env.d.ts
 backend/src/infrastructure/db/pool.js
 backend/.env
-backend/
 backend/seed.js
 backend/tests/
