@@ -9,3 +9,7 @@ backend/seed.js
 backend/tests/
 .vscode/
 docker-compose.yml
+.DS_Store
+backend/# Ejecutar TODOS los tests (unit + integ.sh
+backend/Dockerfile
+backend/schema.sql
