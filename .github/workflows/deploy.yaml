@@ -20,38 +20,40 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Navegar al directorio y actualizar código
+            # Asegurar que usa Node 20
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 20.18.1
+
+            # Actualizar código
             echo "Actualizando código..."
             cd /home/deployuser/ecommercejs
-            sudo -u deployuser git fetch --all
-            sudo -u deployuser git reset --hard origin/main
-            sudo -u deployuser git pull
+            git fetch --all
+            git reset --hard origin/main
+            git pull
 
-            # 2. Instalar dependencias del backend
+            # Backend: instalar dependencias
             echo "Instalando dependencias del backend..."
             cd /home/deployuser/ecommercejs/backend
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install
+            npm install
 
-            # 3. Instalar dependencias y build del frontend
+            # Frontend: instalar y build
             echo "Instalando dependencias del frontend..."
             cd /home/deployuser/ecommercejs/frontend
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install
+            npm install
 
             echo "Construyendo frontend..."
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm run build
+            npm run build
 
-            # 4. Reiniciar Nginx
+            # Reiniciar Nginx
             echo "Reiniciando Nginx..."
             sudo nginx -t
             sudo systemctl restart nginx
 
-            # 5. Reiniciar PM2 (CAMBIADO AQUÍ)
+            # Reiniciar backend con PM2
             echo "Reiniciando aplicación backend..."
             cd /home/deployuser/ecommercejs/backend
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 reload ecommerce-backend --update-env || \
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 start server.js --name ecommerce-backend
-
-            # 6. Guardar configuración de PM2
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 save
+            pm2 reload ecommerce-backend --update-env || pm2 start server.js --name ecommerce-backend
+            pm2 save
 
             echo "✅ Despliegue completado."
