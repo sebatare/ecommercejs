@@ -20,32 +20,38 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Detener la aplicación si está corriendo
-            echo "Deteniendo la aplicación..."
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 stop ecommerce-backend || true
-
-            # 2. Navegar al directorio de la aplicación y actualizar código
+            # 1. Navegar al directorio y actualizar código
             echo "Actualizando código..."
-            sudo -u deployuser git -C /home/deployuser/ecommercejs fetch --all
-            sudo -u deployuser git -C /home/deployuser/ecommercejs pull
+            cd /home/deployuser/ecommercejs
+            sudo -u deployuser git fetch --all
+            sudo -u deployuser git reset --hard origin/main
+            sudo -u deployuser git pull
 
-            # 3. Instalar dependencias del backend y frontend
-            echo "Instalando dependencias..."
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install --prefix /home/deployuser/ecommercejs/backend
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install --prefix /home/deployuser/ecommercejs/frontend
+            # 2. Instalar dependencias del backend
+            echo "Instalando dependencias del backend..."
+            cd /home/deployuser/ecommercejs/backend
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install
 
-            # 4. Build del frontend
+            # 3. Instalar dependencias y build del frontend
+            echo "Instalando dependencias del frontend..."
+            cd /home/deployuser/ecommercejs/frontend
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm install
+
             echo "Construyendo frontend..."
-            sudo -u deployuser bash -c "cd /home/deployuser/ecommercejs/frontend && /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm run build"
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/npm run build
 
-            # 5. Reiniciar Nginx
+            # 4. Reiniciar Nginx
             echo "Reiniciando Nginx..."
             sudo nginx -t
             sudo systemctl restart nginx
 
+            # 5. Reiniciar PM2 (CAMBIADO AQUÍ)
+            echo "Reiniciando aplicación backend..."
+            cd /home/deployuser/ecommercejs/backend
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 reload ecommerce-backend --update-env || \
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 start server.js --name ecommerce-backend
 
-            # 6. Iniciar la aplicación de nuevo
-            echo "Iniciando la aplicación..."
-            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 start /home/deployuser/ecommercejs/backend/server.js --name "ecommerce-backend"
+            # 6. Guardar configuración de PM2
+            sudo -u deployuser /home/deployuser/.nvm/versions/node/v22.17.0/bin/pm2 save
 
             echo "✅ Despliegue completado."
