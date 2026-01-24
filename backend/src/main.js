@@ -5,6 +5,7 @@ const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 const authenticate = require('./middleware/authenticate');
 
+
 // Services & repos
 const ProductService = require('./application/services/ProductService');
 const ProductRepository = require('./infrastructure/repositories/ProductRepository');
@@ -30,7 +31,10 @@ app.use(cors({
   origin: '*',
   credentials: true,
 }));
+app.use(require('cookie-parser')());
 app.use(express.json());
+
+
 
 // Dependency injection
 app.use('/api/products', createProductRouter(

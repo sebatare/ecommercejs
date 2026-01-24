@@ -13,8 +13,6 @@ const pool = new Pool({
 });
 
 
-console.log('Base de datos:', isTest ? process.env.DB_TEST_NAME : process.env.DB_NAME);
-
 pool.on('connect', () => {
 
 });

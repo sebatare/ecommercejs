@@ -18,11 +18,22 @@ function createAuthRouter(authService) {
         async (req, res) => {
             try {
                 // Delegación total al service
-                const {user, token} = await authService.register(req.body);
+                const { user, token } = await authService.register(req.body);
+
+                res.cookie('auth', token, {
+                    httpOnly: true,                 // clave
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: 1000 * 60 * 60 * 24
+                });
+
+                res.json({
+                    user // sin token
+                });
+
 
                 return res.status(201).json({
-                    user,
-                    token
+                    user
                 });
             } catch (err) {
                 if (err instanceof InvalidPasswordError) {
@@ -59,7 +70,18 @@ function createAuthRouter(authService) {
                 const { token, user } = await authService.login(req.body);
 
 
-                res.json({ token, user });
+                res.cookie('auth', token, {
+                    httpOnly: true,        // ✅ Previene acceso desde JavaScript
+                    secure: process.env.NODE_ENV === 'production', // ✅ Solo HTTPS en prod
+                    sameSite: 'strict',    // ⚠️ Cambiar a 'lax' o 'none'
+                    maxAge: 1000 * 60 * 60 * 24, // ✅ 24 horas
+                    path: '/'              // ✅ Añadir esto
+                });
+
+                res.json({
+                    user // sin token
+                });
+
             } catch (err) {
                 res.status(401).json({ error: err.message });
             }
@@ -92,10 +114,6 @@ function createAuthRouter(authService) {
     // Ruta para obtener el usuario autenticado
     router.get('/me', authenticate, async (req, res) => {
         try {
-            
-            // Opcional: puedes buscar el usuario actualizado en la base de datos usando req.user.id
-            // const user = await authService.getUserById(req.user.id)
-            // res.json({ user })
             res.json({ user: req.user })
         } catch (error) {
             res.status(500).json({ error: 'Error al obtener usuario autenticado' })

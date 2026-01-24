@@ -92,9 +92,7 @@ export const useCartStore = defineStore('cart', {
       if (!auth.isAuthenticated) return
 
       try {
-        const { data } = await api.get('/cart/', {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        })
+        const { data } = await api.get('/cart/')
 
         if (this.items.length === 0) {
           // backend manda
@@ -141,11 +139,7 @@ export const useCartStore = defineStore('cart', {
       }))
 
       try {
-        await api.put(
-          '/cart/update-cart',
-          { items: payload },
-          { headers: { Authorization: `Bearer ${auth.token}` } }
-        )
+        await api.put('/cart/update-cart', { items: payload })
       } catch {
         console.warn('⚠️ Sync pendiente (retry luego)')
       }

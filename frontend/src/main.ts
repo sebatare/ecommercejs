@@ -21,8 +21,7 @@ app.use(router)
 //Ahora ya puedes usar el store con seguridad
 const auth = useAuthStore()
 const cart = useCartStore()
-
-await auth.initializeFromToken()
+await auth.verificarTokenConBackend()
 await cart.cargarCarrito()
 app.mount('#app')
 })()

@@ -2,46 +2,25 @@
 import { defineStore } from 'pinia'
 import api from '../utils/api-auth'
 import type { User, LoginPayload, RegisterPayload, AuthResponse } from '../types'
-import { jwtDecode } from 'jwt-decode'
 import { useCartStore } from './cart'
 import type { Router } from 'vue-router'
 
 const TOKEN_KEY = 'token'
-const USER_KEY = 'user'
 
-interface DecodedToken {
-  id: string
-  name: string
-  email: string
-  role: string
-  roleId: number
-  createdAt?: number
-  imageUrl?: string
-  exp?: number
-}
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
-    token: localStorage.getItem(TOKEN_KEY) || '',
     loading: true,
     error: null as string | null,
   }),
 
   getters: {
-    isAuthenticated: state => !!state.token && !!state.user,
+    isAuthenticated: state => !!state.user,
     
     isAdmin: state => state.user?.role === 'admin',
 
-    isTokenExpired: state => {
-      if (!state.token) return true
-      try {
-        const decoded = jwtDecode<DecodedToken>(state.token)
-        return decoded.exp ? Date.now() / 1000 > decoded.exp : true
-      } catch {
-        return true
-      }
-    },
+
 
     currentUser: state => {
       if (!state.user) throw new Error('Usuario no autenticado')
@@ -50,18 +29,15 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async login(payload: LoginPayload): Promise<void> {
+    async login(credentials: LoginPayload): Promise<void> {
       this.loading = true
       this.error = null
 
       try {
-        const { data } = await api.post<AuthResponse>('/auth/login', payload)
-
-        this.token = data.token
+        const { data } = await api.post<AuthResponse>('/auth/login', credentials)
+        
         this.user = data.user
 
-        this.persistirToken(data.token)
-        this.persistirUser(data.user)
 
         // Sincronizar carrito post-login
         const cart = useCartStore()
@@ -133,64 +109,22 @@ export const useAuthStore = defineStore('auth', {
     async logout(): Promise<void> {
       const cart = useCartStore()
       cart.limpiar()
-
-      this.token = ''
       this.user = null
       this.error = null
 
       localStorage.removeItem(TOKEN_KEY)
     },
 
-    async initializeFromToken(): Promise<void> {
-      this.loading = true
-
-      try {
-        if (!this.token || this.isTokenExpired) {
-          await this.logout()
-          return
-        }
-
-        const decoded = jwtDecode<DecodedToken>(this.token)
-
-        this.user = {
-          id: decoded.id,
-          name: decoded.name,
-          email: decoded.email,
-          role: decoded.role,
-          createdAt: decoded.createdAt || null,
-          imageUrl: decoded.imageUrl || '',
-          cart: null,
-        }
-
-        await this.verificarTokenConBackend()
-
-      } catch (error) {
-        await this.logout()
-      } finally {
-        this.loading = false
-      }
-    },
 
     async verificarTokenConBackend(): Promise<void> {
       try {
-        const { data } = await api.get('/auth/me', {
-          headers: { Authorization: `Bearer ${this.token}` },
-        })
-
+        const { data } = await api.get('/auth/me')
         this.user = data.user
       } catch (error) {
         throw error
       }
     },
 
-    persistirToken(token: string): void {
-      localStorage.setItem(TOKEN_KEY, token)
-    },
-
-    persistirUser(user: User) {
-      this.user = user            // Guardamos en el estado
-      localStorage.setItem(USER_KEY, JSON.stringify(user))
-    },
 
     clearError(): void {
       this.error = null

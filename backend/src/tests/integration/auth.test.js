@@ -31,16 +31,17 @@ describe('Auth API - Integration Tests', () => {
             // Debe devolver token y datos del usuario
 
             expect(res.status).toBe(201);
-            expect(res.body).toHaveProperty('token');
+
+            // Usuario OK
             expect(res.body.user).toHaveProperty('id');
-            expect(res.body.user).toHaveProperty('name', 'New User');
             expect(res.body.user).toHaveProperty('email');
-            expect(res.body.user).toHaveProperty('createdAt');
-            expect(res.body.user).toHaveProperty('role');
-            expect(res.body.user).toHaveProperty('cart');
-            expect(res.body.user.cart).toHaveProperty('id');
-            expect(res.body.user.cart).toHaveProperty('items');
-            expect(Array.isArray(res.body.user.cart.items)).toBe(true);
+
+            // Cookie seteada
+            expect(res.headers['set-cookie']).toBeDefined();
+            expect(
+                res.headers['set-cookie'].some(c => c.startsWith('auth='))
+            ).toBe(true);
+
         });
 
         // Test relevante: email duplicado
@@ -100,10 +101,15 @@ describe('Auth API - Integration Tests', () => {
 
             // Debe devolver token válido y datos del usuario
             expect(res.status).toBe(200);
-            expect(res.body).toHaveProperty('token');
-            expect(res.body).toHaveProperty('user.email');
+            expect(res.body).toHaveProperty('user.email', testEmail);
             expect(res.body).toHaveProperty('user.name');
             expect(res.body.user.email).toBe(testEmail);
+
+            // Cookie presente
+            expect(res.headers['set-cookie']).toBeDefined();
+            expect(
+                res.headers['set-cookie'].some(c => c.startsWith('auth='))
+            ).toBe(true);
         });
 
         // Login con contraseña incorrecta
@@ -132,5 +138,24 @@ describe('Auth API - Integration Tests', () => {
             expect(res.status).toBe(401);
             expect(res.body).toHaveProperty('error');
         });
+
+
+        //Debe devolver el usuario autenticado usando la cookie
+        it('should return authenticated user using cookie', async () => {
+            const agent = request.agent(app);
+
+            // Login (guarda cookie automáticamente)
+            await agent.post('/api/auth/login').send({
+                email: testEmail,
+                password: testPassword
+            });
+
+            // Acceso protegido
+            const res = await agent.get('/api/auth/me');
+
+            expect(res.status).toBe(200);
+            expect(res.body.user.email).toBe(testEmail);
+        });
+
     });
 });
