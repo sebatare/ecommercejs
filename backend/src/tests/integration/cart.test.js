@@ -16,7 +16,10 @@ describe('Pruebas de integracion del carrito', () => {
             .post('/api/auth/register')
             .send({ name, email, password });
 
-        userToken = registerRes.body.token; // token JWT generado al registrar
+        userToken = registerRes.headers['set-cookie']
+            .find(cookie => cookie.startsWith('auth='))
+            .split(';')[0]
+            .split('=')[1];
     });
 
     describe('POST /api/cart/create', () => {
@@ -37,7 +40,7 @@ describe('Pruebas de integracion del carrito', () => {
         it('Retorna correctamente carrito de un usuario con el token', async () => {
             const res = await request(app)
                 .get('/api/cart')
-                .set('Authorization', `Bearer ${userToken}`); // token válido
+                .set('Cookie', `auth=${userToken}`);
 
             expect(res.status).toBe(200); // debe devolver 200 OK
             expect(res.body).toHaveProperty('id');

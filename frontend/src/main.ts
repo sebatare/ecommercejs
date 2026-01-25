@@ -21,7 +21,17 @@ app.use(router)
 //Ahora ya puedes usar el store con seguridad
 const auth = useAuthStore()
 const cart = useCartStore()
-await auth.verificarTokenConBackend()
-await cart.cargarCarrito()
-app.mount('#app')
+try {
+    // Verificar si ya hay sesión con cookie
+    await auth.verificarTokenConBackend()
+
+    // Solo cargar carrito si hay usuario logueado
+    if (auth.user) {
+      await cart.cargarCarrito()
+    }
+  } catch (err) {
+    console.error('Error inicializando app:', err)
+  } finally {
+    app.mount('#app')
+  }
 })()

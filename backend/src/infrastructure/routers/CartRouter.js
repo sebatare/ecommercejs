@@ -25,7 +25,7 @@ function createCartRouter(service) {
     router.get('/', async (req, res) => {
         const userId = req.user?.id
         if (!userId) {
-            return res.status(401).json({ error: 'No jnkjnkjnkjn' })
+            return res.status(401).json({ error: 'No tiene autorización para ver el carrito' })
         }
 
         try {

@@ -22,15 +22,11 @@ function createAuthRouter(authService) {
 
                 res.cookie('auth', token, {
                     httpOnly: true,                 // clave
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                    maxAge: 1000 * 60 * 60 * 24
+                    secure: process.env.NODE_ENV === 'productionHTTPS',
+                    sameSite: 'lax',
+                    maxAge: 1000 * 60 * 60 * 24,
+                    path: '/'
                 });
-
-                res.json({
-                    user // sin token
-                });
-
 
                 return res.status(201).json({
                     user
@@ -72,18 +68,18 @@ function createAuthRouter(authService) {
 
                 res.cookie('auth', token, {
                     httpOnly: true,        // ✅ Previene acceso desde JavaScript
-                    secure: process.env.NODE_ENV === 'production', // ✅ Solo HTTPS en prod
-                    sameSite: 'strict',    // ⚠️ Cambiar a 'lax' o 'none'
+                    secure: process.env.NODE_ENV === 'productionHTTPS', // ✅ Solo HTTPS en prod
+                    sameSite: 'lax',    // ⚠️ Cambiar a 'lax' o 'none'
                     maxAge: 1000 * 60 * 60 * 24, // ✅ 24 horas
                     path: '/'              // ✅ Añadir esto
                 });
 
                 res.json({
-                    user // sin token
+                    user
                 });
 
             } catch (err) {
-                res.status(401).json({ error: err.message });
+                return res.status(401).json({ error: err.message });
             }
         });
 
@@ -107,17 +103,25 @@ function createAuthRouter(authService) {
             });
         } catch (error) {
             console.error('Error en google-login:', error);
-            res.status(401).json({ message: 'Token de Google inválido', error: error.message });
+            return res.status(401).json({ message: 'Token de Google inválido', error: error.message });
         }
     });
 
     // Ruta para obtener el usuario autenticado
-    router.get('/me', authenticate, async (req, res) => {
-        try {
-            res.json({ user: req.user })
-        } catch (error) {
-            res.status(500).json({ error: 'Error al obtener usuario autenticado' })
-        }
+    router.get('/me', authenticate, (req, res) => {
+        res.json({ user: req.user });
+    });
+
+
+
+    router.post('/logout', (req, res) => {
+        res.clearCookie('auth', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'productionHTTPS',
+            sameSite: 'lax',
+            path: '/'
+        });
+        return res.status(200).json({ message: 'Logout exitoso' });
     });
 
     return router;

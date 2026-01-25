@@ -5,9 +5,6 @@ import type { User, LoginPayload, RegisterPayload, AuthResponse } from '../types
 import { useCartStore } from './cart'
 import type { Router } from 'vue-router'
 
-const TOKEN_KEY = 'token'
-
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
@@ -60,9 +57,8 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        this.token = dataFromGoogle.token
+
         this.user = dataFromGoogle.user
-        this.persistirToken(dataFromGoogle.token)
 
         const cart = useCartStore()
         await cart.sincronizarConBackendRemoto()
@@ -82,10 +78,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const { data } = await api.post<AuthResponse>('/auth/register', payload)
-        
-        this.token = data.token
         this.user = data.user
-        this.persistirToken(data.token)
 
         // Sincronizar carrito post-registro
         const cart = useCartStore()
@@ -111,19 +104,26 @@ export const useAuthStore = defineStore('auth', {
       cart.limpiar()
       this.user = null
       this.error = null
-
-      localStorage.removeItem(TOKEN_KEY)
+      try {
+        await api.post('/auth/logout')
+      } catch (error) {
+        console.warn('⚠️ Error during logout:', error)
+      }
     },
 
 
     async verificarTokenConBackend(): Promise<void> {
-      try {
-        const { data } = await api.get('/auth/me')
-        this.user = data.user
-      } catch (error) {
-        throw error
-      }
-    },
+  try {
+    const { data } = await api.get('/auth/me')
+    this.user = data.user
+  } catch (error) {
+    this.user = null
+    console.log('No hay sesión activa')
+  }
+  finally {
+    this.loading = false
+  }
+},
 
 
     clearError(): void {

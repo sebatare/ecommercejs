@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../../main');
+const { describe } = require('node:test');
 /*
 Tests:
     - Registro de usuario exitoso
@@ -71,7 +72,7 @@ describe('Auth API - Integration Tests', () => {
     });
 
     // ============================
-    // LOGIN DE USUARIO
+    // LOGIN Y LOGOUT DE USUARIO
     // ============================
     describe('POST /api/auth/login', () => {
         let testEmail;
@@ -157,5 +158,31 @@ describe('Auth API - Integration Tests', () => {
             expect(res.body.user.email).toBe(testEmail);
         });
 
+    });
+
+    describe('POST /api/auth/logout', () => {
+        
+        it('should logout user and clear auth cookie', async () => {
+            const agent = request.agent(app);
+
+            // Login primero
+            await agent.post('/api/auth/login').send({
+                email: `logoutuser${Date.now()}@test.com`,
+                password: 'Password123!'
+            });
+
+            // Logout
+            const res = await agent.post('/api/auth/logout');
+
+            expect(res.status).toBe(200);
+            expect(res.body).toHaveProperty('message', 'Logout exitoso');
+
+            // Verificar que la cookie 'auth' fue borrada
+            const cookies = res.headers['set-cookie'];
+            expect(cookies).toBeDefined();
+            expect(
+                cookies.some(c => c.startsWith('auth=;'))
+            ).toBe(true);
+        });
     });
 });

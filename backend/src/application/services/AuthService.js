@@ -80,7 +80,6 @@ class AuthService {
         const valid = await Password.compare(password, user.password);
         if (!valid) throw new Error('Credenciales inválidas');
 
-        if (!valid) throw new Error('Credenciales inválidas');
 
 
         const userDto = {
