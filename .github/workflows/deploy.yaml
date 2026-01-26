@@ -12,47 +12,47 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
             # Usar rutas absolutas de NVM
             export PATH="/home/deployuser/.nvm/versions/node/v20.18.1/bin:$PATH"
-            
+
             echo "🔹 Verificando entorno..."
             echo "Node: $(node -v)"
             echo "NPM: $(npm -v)"
             echo "PM2: $(pm2 -v)"
-            
+
             cd /home/deployuser/ecommercejs
-            
+
             echo "🔹 Actualizando código desde GitHub..."
             git pull origin main
-            
+
             echo "🔹 Instalando dependencias del backend..."
             cd backend
             npm install --production
-            
+
             echo "🔹 Recargando backend en PM2..."
             pm2 describe ecommerce-backend >/dev/null 2>&1 && \
               pm2 reload ecommerce-backend --update-env || \
               pm2 start server.js --name ecommerce-backend
-            
+
             cd ../frontend
-            
+
             echo "🔹 Instalando dependencias del frontend..."
             npm install
-            
+
             echo "🔹 Construyendo frontend..."
             npm run build
-            
+
             cd ..
-            
+
             echo "🔹 Reiniciando Nginx..."
             sudo nginx -t && sudo systemctl restart nginx
-            
+
             echo "🔹 Guardando estado de PM2..."
             pm2 save
-            
+
             echo "✅ Despliegue completado exitosamente!"
