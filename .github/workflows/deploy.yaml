@@ -1,59 +1,52 @@
-name: Deploy Ecommerce to EC2
+- name: Deploy with SSH
+  uses: appleboy/ssh-action@v0.1.7
+  with:
+    host: ${{ secrets.SSH_HOST }}
+    username: ${{ secrets.SSH_USER }}
+    key: ${{ secrets.SSH_PRIVATE_KEY }}
+    script: |
+      # Marcar repo seguro
+      git config --global --add safe.directory /home/deployuser/ecommercejs
 
-on:
-  push:
-    branches:
-      - main
+      # Cargar NVM y Node
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+      nvm use 20.18.1 || { echo "Node no disponible"; exit 1; }
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+      # Verificar Node y NPM
+      node -v
+      npm -v
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Actualizar código
+      echo "Actualizando código..."
+      cd /home/deployuser/ecommercejs
+      git fetch --all
+      git reset --hard origin/main
+      git pull
 
-      - name: Deploy with SSH
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Asegurar que usa Node 20
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 20.18.1
+      # Backend: instalar dependencias
+      echo "Instalando dependencias del backend..."
+      cd backend
+      npm install
 
-            # Actualizar código
-            echo "Actualizando código..."
-            cd /home/deployuser/ecommercejs
-            git fetch --all
-            git reset --hard origin/main
-            git pull
+      # Frontend: instalar y build
+      echo "Instalando dependencias del frontend..."
+      cd ../frontend
+      npm install
+      echo "Construyendo frontend..."
+      npm run build
 
-            # Backend: instalar dependencias
-            echo "Instalando dependencias del backend..."
-            cd /home/deployuser/ecommercejs/backend
-            npm install
+      # Reiniciar Nginx
+      echo "Reiniciando Nginx..."
+      sudo nginx -t
+      sudo systemctl restart nginx
 
-            # Frontend: instalar y build
-            echo "Instalando dependencias del frontend..."
-            cd /home/deployuser/ecommercejs/frontend
-            npm install
+      # Reiniciar backend con PM2
+      echo "Reiniciando aplicación backend..."
+      cd ../backend
+      pm2 describe ecommerce-backend >/dev/null 2>&1 && \
+      pm2 reload ecommerce-backend --update-env || \
+      pm2 start server.js --name ecommerce-backend
+      pm2 save
 
-            echo "Construyendo frontend..."
-            npm run build
-
-            # Reiniciar Nginx
-            echo "Reiniciando Nginx..."
-            sudo nginx -t
-            sudo systemctl restart nginx
-
-            # Reiniciar backend con PM2
-            echo "Reiniciando aplicación backend..."
-            cd /home/deployuser/ecommercejs/backend
-            pm2 reload ecommerce-backend --update-env || pm2 start server.js --name ecommerce-backend
-            pm2 save
-
-            echo "✅ Despliegue completado."
+      echo "✅ Despliegue completado."
