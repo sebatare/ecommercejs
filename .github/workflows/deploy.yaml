@@ -50,8 +50,8 @@ jobs:
             cd ..
 
             echo "🔹 Reiniciando Nginx..."
-            nginx -t
-            systemctl restart nginx
+            sudo nginx -t
+            sudo systemctl restart nginx
 
             echo "✅ Despliegue completado exitosamente!"
             EOF
