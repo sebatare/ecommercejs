@@ -17,28 +17,20 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            # Cargar NVM y Node
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
-            echo "🔹 Verificando Node, NPM y PM2 globales..."
+            echo "🔹 Verificando Node, NPM y PM2..."
             echo "Node: $(node -v)"
             echo "NPM: $(npm -v)"
-
-            # Instala PM2 global si no existe (sin sudo y con PATH correcto)
-            if ! command -v pm2 &>/dev/null; then
-              echo "🔹 PM2 no está instalado, instalando..."
-              sudo npm install -g pm2
-              # Asegurar que PM2 esté en el PATH
-              export PATH=$PATH:/usr/local/bin:/usr/bin
-            fi
-
-            # Recargar PATH para encontrar PM2
-            export PATH=$PATH:/usr/local/bin:/usr/bin
             echo "PM2: $(pm2 -v)"
 
-            echo "🔹 Ajustando permisos del repo (ANTES de git)..."
+            echo "🔹 Ajustando permisos del repo..."
             sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
-            sudo chmod -R u+w /home/deployuser/ecommercejs/.git
 
             cd /home/deployuser/ecommercejs
 
@@ -76,7 +68,7 @@ jobs:
                 echo "🔹 No hay cambios en backend/package.json, saltando npm install."
               fi
               
-              # Backend: recargar PM2 solo si hay cambios en src
+              # Backend: recargar PM2 solo si hay cambios en backend
               if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/'; then
                 echo "🔹 Cambios en backend detectados, recargando PM2..."
                 cd backend
@@ -98,7 +90,7 @@ jobs:
                 echo "🔹 No hay cambios en frontend/package.json, saltando npm install."
               fi
               
-              # Frontend: build si src cambió
+              # Frontend: build si hay cambios
               if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^frontend/'; then
                 echo "🔹 Cambios en frontend detectados, construyendo..."
                 cd frontend
