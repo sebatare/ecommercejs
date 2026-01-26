@@ -24,31 +24,36 @@ jobs:
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
-            echo "🔹 Verificando Node, NPM y PM2 globales..."
-            node -v
-            npm -v
-            pm2 -v || echo "PM2 no está instalado"
+            echo "🔹 Cargando NVM y Node..."
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 20.18.1 || { echo "Node no disponible"; exit 1; }
+
+            # Añadir Node y PM2 al PATH explícitamente
+            export PATH="$NVM_DIR/versions/node/v20.18.1/bin:$PATH"
+
+            echo "Node: $(node -v)"
+            echo "NPM: $(npm -v)"
+            echo "PM2: $(pm2 -v || echo 'PM2 no está instalado')"
 
             echo "🔹 Ajustando permisos del repo..."
             sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
-
             cd /home/deployuser/ecommercejs
 
-            # Guardar hash anterior
+            # Guardar hash previo
             PREV_HASH=$(git rev-parse HEAD)
 
-            # Actualizar repo
-            echo "🔹 Actualizando código desde Git..."
+            echo "🔹 Actualizando repo..."
             git fetch --all
             git reset --hard origin/main
             git pull
 
-            # Guardar nuevo hash
+            # Guardar hash nuevo
             NEW_HASH=$(git rev-parse HEAD)
 
-            # 1️⃣ Backend: instalar deps solo si cambió package.json
+            # Backend: instalar deps si package.json cambió
             if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/package\.json|^backend/package-lock\.json'; then
-              echo "🔹 Cambios en backend/package.json detectados, instalando dependencias..."
+              echo "🔹 Cambios en backend/package.json detectados, instalando deps..."
               cd backend
               npm install
               cd ..
@@ -56,7 +61,7 @@ jobs:
               echo "🔹 No hay cambios en backend/package.json, saltando npm install."
             fi
 
-            # 2️⃣ Backend: recargar PM2 solo si hay cambios en backend/src
+            # Backend: recargar PM2 si hay cambios en src
             if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/src/'; then
               echo "🔹 Cambios en backend/src detectados, recargando PM2..."
               cd backend
@@ -68,9 +73,9 @@ jobs:
               echo "🔹 No hay cambios en backend/src, PM2 no se recarga."
             fi
 
-            # 3️⃣ Frontend: instalar deps si package.json cambió
+            # Frontend: instalar deps si package.json cambió
             if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^frontend/package\.json|^frontend/package-lock\.json'; then
-              echo "🔹 Cambios en frontend/package.json detectados, instalando dependencias..."
+              echo "🔹 Cambios en frontend/package.json detectados, instalando deps..."
               cd frontend
               npm install
               cd ..
@@ -78,7 +83,7 @@ jobs:
               echo "🔹 No hay cambios en frontend/package.json, saltando npm install."
             fi
 
-            # 4️⃣ Frontend: build solo si src cambió
+            # Frontend: build si src cambió
             if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^frontend/src/'; then
               echo "🔹 Cambios en frontend/src detectados, construyendo frontend..."
               cd frontend
@@ -88,12 +93,22 @@ jobs:
               echo "🔹 No hay cambios en frontend/src, saltando build."
             fi
 
-            # 5️⃣ Reiniciar Nginx siempre
+            # Reiniciar Nginx siempre
             echo "🔹 Reiniciando Nginx..."
             sudo nginx -t
             sudo systemctl restart nginx
 
-            # 6️⃣ Guardar PM2
+            # Guardar estado de PM2
             pm2 save
 
             echo "✅ Despliegue completado."
+
+          sync: false
+          use_insecure_cipher: false
+          timeout: 30s
+          command_timeout: 10m
+          proxy_port: 22
+          proxy_timeout: 30s
+          proxy_use_insecure_cipher: false
+          script_stop: false
+          debug: false
