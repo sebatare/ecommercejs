@@ -12,23 +12,26 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Usar rutas absolutas directamente
+            # Usar rutas absolutas de NVM
             export PATH="/home/deployuser/.nvm/versions/node/v20.18.1/bin:$PATH"
 
             echo "🔹 Verificando entorno..."
-            echo "Node: $(node -v) - $(which node)"
-            echo "NPM: $(npm -v) - $(which npm)"
-            echo "PM2: $(pm2 -v) - $(which pm2)"
+            echo "Node: $(node -v)"
+            echo "NPM: $(npm -v)"
+            echo "PM2: $(pm2 -v)"
 
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
             cd /home/deployuser/ecommercejs
+
+            echo "🔹 Arreglando permisos de Git..."
+            chmod -R u+w .git/ 2>/dev/null || true
 
             # Guardar hash previo
             PREV_HASH=$(git rev-parse HEAD 2>/dev/null || echo "")
