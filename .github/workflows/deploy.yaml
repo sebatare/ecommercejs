@@ -1,4 +1,4 @@
-name: Deploy Ecommerce to EC2
+name: Deploy Ecommerce
 
 on:
   push:
@@ -10,31 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Deploy with SSH
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
-            echo "🔹 Cargando NVM y Node..."
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 20.18.1 || { echo "Node no disponible"; exit 1; }
-
-            # Añadir Node y PM2 al PATH explícitamente
-            export PATH="$NVM_DIR/versions/node/v20.18.1/bin:$PATH"
-
+            echo "🔹 Verificando Node, NPM y PM2 globales..."
             echo "Node: $(node -v)"
             echo "NPM: $(npm -v)"
-            echo "PM2: $(pm2 -v || echo 'PM2 no está instalado')"
+
+            # Instala PM2 global si no existe
+            if ! command -v pm2 &>/dev/null; then
+              echo "🔹 PM2 no está instalado, instalando..."
+              sudo npm install -g pm2
+            fi
+            echo "PM2: $(pm2 -v)"
 
             echo "🔹 Ajustando permisos del repo..."
             sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
@@ -51,7 +50,7 @@ jobs:
             # Guardar hash nuevo
             NEW_HASH=$(git rev-parse HEAD)
 
-            # Backend: instalar deps si package.json cambió
+            # Backend: instalar deps solo si cambió package.json
             if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/package\.json|^backend/package-lock\.json'; then
               echo "🔹 Cambios en backend/package.json detectados, instalando deps..."
               cd backend
@@ -61,7 +60,7 @@ jobs:
               echo "🔹 No hay cambios en backend/package.json, saltando npm install."
             fi
 
-            # Backend: recargar PM2 si hay cambios en src
+            # Backend: recargar PM2 solo si hay cambios en src
             if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/src/'; then
               echo "🔹 Cambios en backend/src detectados, recargando PM2..."
               cd backend
@@ -102,13 +101,3 @@ jobs:
             pm2 save
 
             echo "✅ Despliegue completado."
-
-          sync: false
-          use_insecure_cipher: false
-          timeout: 30s
-          command_timeout: 10m
-          proxy_port: 22
-          proxy_timeout: 30s
-          proxy_use_insecure_cipher: false
-          script_stop: false
-          debug: false
