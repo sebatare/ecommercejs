@@ -16,9 +16,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
             echo "🔹 Marcando repo seguro para Git..."
