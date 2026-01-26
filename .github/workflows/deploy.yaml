@@ -12,25 +12,30 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Cargar NVM y Node
+            # Cargar NVM explícitamente
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
             echo "🔹 Verificando Node, NPM y PM2..."
+            which node
+            which npm
+            which pm2
             echo "Node: $(node -v)"
             echo "NPM: $(npm -v)"
             echo "PM2: $(pm2 -v)"
 
             echo "🔹 Ajustando permisos del repo..."
             sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
+            sudo chmod -R u+w /home/deployuser/ecommercejs
 
             cd /home/deployuser/ecommercejs
 
@@ -40,7 +45,7 @@ jobs:
             echo "🔹 Actualizando repo..."
             git fetch --all
             git reset --hard origin/main
-            git pull
+            git pull origin main
 
             # Guardar hash nuevo
             NEW_HASH=$(git rev-parse HEAD)
