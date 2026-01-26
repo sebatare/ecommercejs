@@ -28,17 +28,23 @@ const createCartRouter = require('./infrastructure/routers/CartRouter');
 const app = express();
 
 // Configurar CORS: Si usas cookies (credentials: true), debes especificar el origin exacto
-const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? ['https://tudominio.com'] // Cambiar a tu dominio en producción
-  : ['http://localhost:5173', 'http://127.0.0.1:5173']; // Vite dev server
+const allowedOrigins = [process.env.FRONTEND_ORIGIN];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // curl / Postman
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 }));
+
 app.use(require('cookie-parser')());
 app.use(express.json());
 
