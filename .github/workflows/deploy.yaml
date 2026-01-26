@@ -3,12 +3,14 @@ on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -17,53 +19,45 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            # Usar rutas absolutas de NVM
+            # 🔹 Usar rutas absolutas de NVM
             export PATH="/home/deployuser/.nvm/versions/node/v20.18.1/bin:$PATH"
             
             echo "🔹 Verificando entorno..."
             echo "Node: $(node -v)"
             echo "NPM: $(npm -v)"
             echo "PM2: $(pm2 -v)"
-            
+
             cd /home/deployuser/ecommercejs
-            
+
+            # 🔹 Asegurar permisos correctos
+            sudo chown -R deployuser:deployuser .
+            chmod -R u+rwX .
+
             echo "🔹 Actualizando código desde GitHub..."
-            sudo chown -R deployuser:deployuser .
             git pull origin main
-            
-            echo "🔹 Limpiando instalación anterior del backend..."
+
+            # 🔹 Backend
             cd backend
-            sudo rm -rf node_modules package-lock.json
-            sudo chown -R deployuser:deployuser .
-            chmod -R u+w .
-            
-            echo "🔹 Instalando dependencias del backend..."
+            rm -rf node_modules package-lock.json
             npm install --omit=dev
-            
+
             echo "🔹 Recargando backend en PM2..."
             pm2 describe ecommerce-backend >/dev/null 2>&1 && \
               pm2 reload ecommerce-backend --update-env || \
               pm2 start server.js --name ecommerce-backend
-            
+
+            # 🔹 Frontend
             cd ../frontend
-            
-            echo "🔹 Limpiando instalación anterior del frontend..."
-            sudo rm -rf node_modules package-lock.json .vite-temp dist
-            sudo chown -R deployuser:deployuser .
-            chmod -R u+w .
-            
-            echo "🔹 Instalando dependencias del frontend..."
+            rm -rf node_modules package-lock.json .vite-temp dist
             npm install
-            
-            echo "🔹 Construyendo frontend..."
-            npm run build
-            
+            npx vite build  # 🔹 Usa npx para evitar problemas si vite no es global
+
             cd ..
-            
+
             echo "🔹 Reiniciando Nginx..."
             sudo nginx -t && sudo systemctl restart nginx
-            
+
             echo "🔹 Guardando estado de PM2..."
             pm2 save
-            
+
             echo "✅ Despliegue completado exitosamente!"
