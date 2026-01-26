@@ -19,45 +19,34 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            # 🔹 Usar rutas absolutas de NVM
-            export PATH="/home/deployuser/.nvm/versions/node/v20.18.1/bin:$PATH"
-            
-            echo "🔹 Verificando entorno..."
-            echo "Node: $(node -v)"
-            echo "NPM: $(npm -v)"
-            echo "PM2: $(pm2 -v)"
-
+            echo "🚀 Iniciando despliegue de EcommerceJS..."
             cd /home/deployuser/ecommercejs
-
-            # 🔹 Asegurar permisos correctos
-            sudo chown -R deployuser:deployuser .
-            chmod -R u+rwX .
-
-            echo "🔹 Actualizando código desde GitHub..."
+            echo "🔹 Actualizando código fuente..."
+            git fetch
             git pull origin main
 
             # 🔹 Backend
             cd backend
             rm -rf node_modules package-lock.json
-            npm install --omit=dev
+            npm install 
 
             echo "🔹 Recargando backend en PM2..."
-            pm2 describe ecommerce-backend >/dev/null 2>&1 && \
-              pm2 reload ecommerce-backend --update-env || \
-              pm2 start server.js --name ecommerce-backend
+            pm2 describe ecommerce-backend >/dev/null 2>&1
+            pm2 reload ecommerce-backend --update-env || pm2 start server.js --name ecommerce-backend
+            echo "🔹 Guardando estado de PM2..."
+            pm2 save
 
             # 🔹 Frontend
             cd ../frontend
             rm -rf node_modules package-lock.json .vite-temp dist
             npm install
-            npx vite build  # 🔹 Usa npx para evitar problemas si vite no es global
+            npm run build
 
             cd ..
 
             echo "🔹 Reiniciando Nginx..."
-            sudo nginx -t && sudo systemctl restart nginx
+            sudo nginx -t
+            sudo systemctl restart nginx
 
-            echo "🔹 Guardando estado de PM2..."
-            pm2 save
 
             echo "✅ Despliegue completado exitosamente!"
