@@ -25,18 +25,17 @@ jobs:
             echo "NPM: $(npm -v)"
             echo "PM2: $(pm2 -v)"
             
-            echo "🔹 Arreglando permisos completos del proyecto..."
-            sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
-            sudo chmod -R 755 /home/deployuser/ecommercejs
-            
             cd /home/deployuser/ecommercejs
             
             echo "🔹 Actualizando código desde GitHub..."
+            sudo chown -R deployuser:deployuser .
             git pull origin main
             
             echo "🔹 Limpiando instalación anterior del backend..."
             cd backend
             sudo rm -rf node_modules package-lock.json
+            sudo chown -R deployuser:deployuser .
+            chmod -R u+w .
             
             echo "🔹 Instalando dependencias del backend..."
             npm install --omit=dev
@@ -50,6 +49,8 @@ jobs:
             
             echo "🔹 Limpiando instalación anterior del frontend..."
             sudo rm -rf node_modules package-lock.json .vite-temp dist
+            sudo chown -R deployuser:deployuser .
+            chmod -R u+w .
             
             echo "🔹 Instalando dependencias del frontend..."
             npm install
