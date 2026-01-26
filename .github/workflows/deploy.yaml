@@ -25,6 +25,10 @@ jobs:
             echo "NPM: $(npm -v)"
             echo "PM2: $(pm2 -v)"
 
+            echo "🔹 Arreglando permisos del proyecto completo..."
+            sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
+            sudo chmod -R u+w /home/deployuser/ecommercejs
+
             cd /home/deployuser/ecommercejs
 
             echo "🔹 Actualizando código desde GitHub..."
