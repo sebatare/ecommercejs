@@ -17,11 +17,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            #!/bin/bash -l
-
-            # Asegurar que NVM esté cargado
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            # Usar rutas absolutas directamente
+            export PATH="/home/deployuser/.nvm/versions/node/v20.18.1/bin:$PATH"
 
             echo "🔹 Verificando entorno..."
             echo "Node: $(node -v) - $(which node)"
