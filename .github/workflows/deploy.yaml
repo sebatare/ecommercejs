@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout del código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2️⃣ Despliegue vía SSH
       - name: Deploy with SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -26,40 +24,76 @@ jobs:
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
-            echo "🔹 Verificando Node y NPM global..."
+            echo "🔹 Verificando Node, NPM y PM2 globales..."
             node -v
             npm -v
+            pm2 -v || echo "PM2 no está instalado"
 
-            # 3️⃣ Actualizar código
-            echo "🔹 Actualizando código desde Git..."
+            echo "🔹 Ajustando permisos del repo..."
+            sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
+
             cd /home/deployuser/ecommercejs
+
+            # Guardar hash anterior
+            PREV_HASH=$(git rev-parse HEAD)
+
+            # Actualizar repo
+            echo "🔹 Actualizando código desde Git..."
             git fetch --all
             git reset --hard origin/main
             git pull
 
-            # 4️⃣ Backend: instalar dependencias
-            echo "🔹 Instalando dependencias del backend..."
-            cd backend
-            npm install
+            # Guardar nuevo hash
+            NEW_HASH=$(git rev-parse HEAD)
 
-            # 5️⃣ Frontend: instalar dependencias y build
-            echo "🔹 Instalando dependencias del frontend..."
-            cd ../frontend
-            npm install
-            echo "🔹 Construyendo frontend..."
-            npm run build
+            # 1️⃣ Backend: instalar deps solo si cambió package.json
+            if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/package\.json|^backend/package-lock\.json'; then
+              echo "🔹 Cambios en backend/package.json detectados, instalando dependencias..."
+              cd backend
+              npm install
+              cd ..
+            else
+              echo "🔹 No hay cambios en backend/package.json, saltando npm install."
+            fi
 
-            # 6️⃣ Reiniciar Nginx
+            # 2️⃣ Backend: recargar PM2 solo si hay cambios en backend/src
+            if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^backend/src/'; then
+              echo "🔹 Cambios en backend/src detectados, recargando PM2..."
+              cd backend
+              pm2 describe ecommerce-backend >/dev/null 2>&1 && \
+                pm2 reload ecommerce-backend --update-env || \
+                pm2 start server.js --name ecommerce-backend
+              cd ..
+            else
+              echo "🔹 No hay cambios en backend/src, PM2 no se recarga."
+            fi
+
+            # 3️⃣ Frontend: instalar deps si package.json cambió
+            if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^frontend/package\.json|^frontend/package-lock\.json'; then
+              echo "🔹 Cambios en frontend/package.json detectados, instalando dependencias..."
+              cd frontend
+              npm install
+              cd ..
+            else
+              echo "🔹 No hay cambios en frontend/package.json, saltando npm install."
+            fi
+
+            # 4️⃣ Frontend: build solo si src cambió
+            if git diff --name-only $PREV_HASH $NEW_HASH | grep -qE '^frontend/src/'; then
+              echo "🔹 Cambios en frontend/src detectados, construyendo frontend..."
+              cd frontend
+              npm run build
+              cd ..
+            else
+              echo "🔹 No hay cambios en frontend/src, saltando build."
+            fi
+
+            # 5️⃣ Reiniciar Nginx siempre
             echo "🔹 Reiniciando Nginx..."
             sudo nginx -t
             sudo systemctl restart nginx
 
-            # 7️⃣ Reiniciar backend con PM2
-            echo "🔹 Reiniciando backend con PM2..."
-            cd ../backend
-            pm2 describe ecommerce-backend >/dev/null 2>&1 && \
-            pm2 reload ecommerce-backend --update-env || \
-            pm2 start server.js --name ecommerce-backend
+            # 6️⃣ Guardar PM2
             pm2 save
 
             echo "✅ Despliegue completado."
