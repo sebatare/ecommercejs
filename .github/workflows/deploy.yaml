@@ -21,6 +21,8 @@ jobs:
           script: |
             echo "🚀 Iniciando despliegue de EcommerceJS..."
             cd /home/deployuser/ecommercejs
+            echo "Usuario actual:"
+            echo "$(whoami)"
             echo "🔹 Actualizando código fuente..."
             git fetch
             git pull origin main
