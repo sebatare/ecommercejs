@@ -26,13 +26,9 @@ jobs:
             echo "🔹 Marcando repo seguro para Git..."
             git config --global --add safe.directory /home/deployuser/ecommercejs
 
-            echo "🔹 Cargando NVM y Node 20..."
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 20.18.1 || { echo "Node no disponible"; exit 1; }
-
-            echo "Node version: $(node -v)"
-            echo "NPM version: $(npm -v)"
+            echo "🔹 Verificando Node y NPM global..."
+            node -v
+            npm -v
 
             # 3️⃣ Actualizar código
             echo "🔹 Actualizando código desde Git..."
