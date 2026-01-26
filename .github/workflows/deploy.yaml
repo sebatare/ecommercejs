@@ -19,44 +19,50 @@ jobs:
           script: |
             # Usar rutas absolutas de NVM
             export PATH="/home/deployuser/.nvm/versions/node/v20.18.1/bin:$PATH"
-
+            
             echo "🔹 Verificando entorno..."
             echo "Node: $(node -v)"
             echo "NPM: $(npm -v)"
             echo "PM2: $(pm2 -v)"
-
-            echo "🔹 Arreglando permisos del proyecto completo..."
+            
+            echo "🔹 Arreglando permisos completos del proyecto..."
             sudo chown -R deployuser:deployuser /home/deployuser/ecommercejs
-            sudo chmod -R u+w /home/deployuser/ecommercejs
-
+            sudo chmod -R 755 /home/deployuser/ecommercejs
+            
             cd /home/deployuser/ecommercejs
-
+            
             echo "🔹 Actualizando código desde GitHub..."
             git pull origin main
-
-            echo "🔹 Instalando dependencias del backend..."
+            
+            echo "🔹 Limpiando instalación anterior del backend..."
             cd backend
-            npm install --production
-
+            sudo rm -rf node_modules package-lock.json
+            
+            echo "🔹 Instalando dependencias del backend..."
+            npm install --omit=dev
+            
             echo "🔹 Recargando backend en PM2..."
             pm2 describe ecommerce-backend >/dev/null 2>&1 && \
               pm2 reload ecommerce-backend --update-env || \
               pm2 start server.js --name ecommerce-backend
-
+            
             cd ../frontend
-
+            
+            echo "🔹 Limpiando instalación anterior del frontend..."
+            sudo rm -rf node_modules package-lock.json .vite-temp dist
+            
             echo "🔹 Instalando dependencias del frontend..."
             npm install
-
+            
             echo "🔹 Construyendo frontend..."
             npm run build
-
+            
             cd ..
-
+            
             echo "🔹 Reiniciando Nginx..."
             sudo nginx -t && sudo systemctl restart nginx
-
+            
             echo "🔹 Guardando estado de PM2..."
             pm2 save
-
+            
             echo "✅ Despliegue completado exitosamente!"
