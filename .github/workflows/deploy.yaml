@@ -19,15 +19,17 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            sudo -i -u deployuser bash <<'EOF'
             echo "🚀 Iniciando despliegue de EcommerceJS..."
             cd /home/deployuser/ecommercejs
+
             echo "Usuario actual:"
-            echo "$(whoami)"
-            id -un
+            whoami
             id -a
+
             echo "🔹 Actualizando código fuente..."
-            sudo -u deployuser git fetch origin main
-            sudo -u deployuser git pull origin main
+            git fetch origin main
+            git pull origin main
 
             # 🔹 Backend
             cd backend
@@ -37,7 +39,6 @@ jobs:
             echo "🔹 Recargando backend en PM2..."
             pm2 describe ecommerce-backend >/dev/null 2>&1
             pm2 reload ecommerce-backend --update-env || pm2 start server.js --name ecommerce-backend
-            echo "🔹 Guardando estado de PM2..."
             pm2 save
 
             # 🔹 Frontend
@@ -49,8 +50,8 @@ jobs:
             cd ..
 
             echo "🔹 Reiniciando Nginx..."
-            sudo nginx -t
-            sudo systemctl restart nginx
-
+            nginx -t
+            systemctl restart nginx
 
             echo "✅ Despliegue completado exitosamente!"
+            EOF
