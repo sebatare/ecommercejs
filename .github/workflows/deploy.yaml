@@ -23,9 +23,11 @@ jobs:
             cd /home/deployuser/ecommercejs
             echo "Usuario actual:"
             echo "$(whoami)"
+            id -un
+            id -a
             echo "🔹 Actualizando código fuente..."
-            git fetch
-            git pull origin main
+            sudo -u deployuser git fetch origin main
+            sudo -u deployuser git pull origin main
 
             # 🔹 Backend
             cd backend
