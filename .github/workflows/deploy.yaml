@@ -29,8 +29,8 @@ jobs:
 
             # 🔹 Backend
             cd backend
-            rm -rf node_modules package-lock.json
-            npm ci  -omit=dev 
+            rm -rf node_modules
+            npm ci
 
             echo "🔹 Recargando backend en PM2..."
             pm2 describe ecommerce-backend >/dev/null 2>&1
@@ -39,7 +39,7 @@ jobs:
 
             # 🔹 Frontend
             cd ../frontend
-            rm -rf node_modules package-lock.json .vite-temp dist
+            rm -rf node_modules .vite-temp dist
             npm ci
             npm run build
 
