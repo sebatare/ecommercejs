@@ -3,16 +3,35 @@
 const express = require('express');
 const authenticate = require('../../middleware/authenticate');
 const authorize = require('../../middleware/authorization');
-const { body, validationResult } = require('express-validator');
 
 function createUserRouter(userService) {
     const router = express.Router();
 
-    router.get('/', async (req, res, next) => {
+    router.get('/', authenticate, authorize('admin'), async (req, res, next) => {
         try {
             // El router pide la lista al servicio
             const users = await userService.findAll();
             res.json(users);
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    router.get('/:id', authenticate, async (req, res, next) => {
+        try {
+            const userId = parseInt(req.params.id);
+            const user = await userService.findById(userId);
+
+            if (!user) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+
+            // Solo el admin o el propio usuario pueden ver los detalles
+            if (req.user.role !== 'admin' && req.user.userId !== userId) {
+                return res.status(403).json({ error: 'No tiene permiso para ver este usuario' });
+            }
+
+            res.json(user);
         } catch (err) {
             next(err);
         }

@@ -6,7 +6,11 @@ class UserService {
     }
 
     async findAll() {
+        
         return this.userRepository.findAll();
+    }
+    async findById(id) {
+        return this.userRepository.findById(id);
     }
 
     async update(id, updatedData, currentUser) {

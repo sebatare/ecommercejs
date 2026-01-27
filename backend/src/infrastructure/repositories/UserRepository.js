@@ -23,6 +23,21 @@ class UserRepository extends BaseRepository {
 
     }
 
+    async findById(id) {
+        const res = await pool.query(
+            `SELECT u.*, r.name AS role_name
+         FROM users u
+         LEFT JOIN roles r ON u.role_id = r.id
+         WHERE u.id = $1`,
+            [id]
+        );
+        if (res.rowCount === 0) {
+            return null;
+        }
+        const user = res.rows[0]
+        return new User(user);
+    }
+
     async create({ name, email, createdAt, roleId, password }) {
         const resUser = await pool.query(
             `INSERT INTO users (name, email, created_at, password, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
