@@ -26,6 +26,16 @@
         </router-link>
       </li>
 
+      <li v-if="auth.isAuthenticated && auth.isAdmin">
+        <router-link v-if="!isInAdminPanel" to="/admin/home" class="nav-link admin-link admin-panel-btn"
+          title="Ir al Panel de Administración">
+          🔐 Panel Admin
+        </router-link>
+        <router-link v-else to="/" class="nav-link back-link" title="Volver a la tienda">
+          ↩️ Volver a tienda
+        </router-link>
+      </li>
+
       <li v-if="auth.loading">
         <span class="loading-text">Cargando...</span>
       </li>
@@ -36,15 +46,6 @@
       </li>
       <li v-else>
         <router-link to="/login" class="nav-link login-btn">Iniciar sesión</router-link>
-      </li>
-      <li v-if="auth.isAuthenticated && auth.user?.role === 'Admin'">
-        <router-link v-if="!isInAdminPanel" to="/admin" class="nav-link admin-link admin-panel-btn"
-          title="Ir al Panel de Administración">
-          🔐 Panel Admin
-        </router-link>
-        <router-link v-else to="/" class="nav-link back-link" title="Volver a la tienda">
-          ↩️ Volver a tienda
-        </router-link>
       </li>
     </ul>
   </nav>
