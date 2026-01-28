@@ -3,6 +3,9 @@ import LoginPage from '../pages/Auth/LoginPage.vue'
 import RegisterPage from '../pages/Auth/RegisterPage.vue'
 import HomePage from '../pages/Home/HomePage.vue'
 import CartPage from '../pages/Cart/CartPage.vue'
+import ProductDetailsPage from '../pages/Products/ProductDetailsPage.vue'
+import UserProfilePage from '../pages/User/UserProfilePage.vue'
+import AdminDashboardPage from '../pages/Admin/AdminDashboardPage.vue'
 import HomeAdminPage from '../pages/Admin/HomeAdminPage.vue'
 import ProductsAdminPage from '../pages/Admin/ProductsAdminPage.vue'
 import RolesAdminPage from '../pages/Admin/RolesAdminPage.vue'
@@ -15,10 +18,14 @@ const routes = [
   { path: '/login', component: LoginPage },
   { path: '/cart', component: CartPage },
   { path:'/register', component: RegisterPage },
-  { path: '/admin', component: HomeAdminPage, meta: { requiresAdmin: true } },
-  { path: '/admin/products', component: ProductsAdminPage },
-  { path: '/admin/roles', component: RolesAdminPage },
-  { path: '/admin/users', component: UsersAdminPage },
+  { path: '/products/:id', component: ProductDetailsPage, name: 'ProductDetails' },
+  { path: '/profile', component: UserProfilePage, meta: { requiresAuth: true } },
+  { path: '/admin', component: AdminDashboardPage, meta: { requiresAdmin: true } },
+  { path: '/admin/dashboard', component: AdminDashboardPage, meta: { requiresAdmin: true } },
+  { path: '/admin/home', component: HomeAdminPage, meta: { requiresAdmin: true } },
+  { path: '/admin/products', component: ProductsAdminPage, meta: { requiresAdmin: true } },
+  { path: '/admin/roles', component: RolesAdminPage, meta: { requiresAdmin: true } },
+  { path: '/admin/users', component: UsersAdminPage, meta: { requiresAdmin: true } },
   { path: '/unauthorized',name:'Unauthorized', component: UnauthorizedPage},
 ]
 
@@ -33,8 +40,16 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = authStore.isAuthenticated
   const userRole = authStore.user?.role
 
+  // Verificar si la ruta requiere autenticación
+  if (to.meta.requiresAuth) {
+    if (!isAuthenticated) {
+      next({ path: '/login' })
+    } else {
+      next()
+    }
+  }
   // Verificar si la ruta requiere permisos de admin
-  if (to.meta.requiresAdmin) {
+  else if (to.meta.requiresAdmin) {
     if (!isAuthenticated) {
       // 1. Si no está autenticado, redirigir a la página de inicio
       next({ path: '/' })

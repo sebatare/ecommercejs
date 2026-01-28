@@ -4,10 +4,12 @@ const Password = require('../../domain/value-objects/Password');
 const jwt = require('jsonwebtoken');
 const RegisteredEmailError = require('../../domain/errors/auth/RegisteredEmailError');
 const { user } = require('pg/lib/defaults');
+
 class AuthService {
-    constructor(userRepository, cartRepository) {
+    constructor(userRepository, cartRepository, refreshTokenRepository) {
         this.userRepository = userRepository;
         this.cartRepository = cartRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     // ===============================
@@ -22,12 +24,30 @@ class AuthService {
         return token;
     }
 
+    _generateRefreshToken(userEntity) {
+        const refreshToken = jwt.sign(
+            { id: userEntity.id, email: userEntity.email, role: userEntity.role, name: userEntity.name },
+            SECRET,
+            { expiresIn: '7d' }
+        );
+        return refreshToken;
+    }
+
+    /**
+     * Crea un refresh token y lo almacena en la BD
+     */
+    async _createRefreshTokenRecord(userId) {
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7 días de expiración
+
+        const refreshTokenRecord = await this.refreshTokenRepository.create(userId, expiresAt);
+        return refreshTokenRecord.token;
+    }
+
     async register({ name, email, password, isAdmin = false }) {
 
         // 1️⃣ Validación de dominio
         const passwordVO = Password.create(password);
-
-
 
         // 2️⃣ Regla de negocio: email único
         const existingUser = await this.userRepository.findByEmail(email);
@@ -52,6 +72,8 @@ class AuthService {
 
         const cartEntity = await this.cartRepository.createCart(userEntity.id);
 
+        // 5️⃣ Crear refresh token en BD
+        const refreshToken = await this._createRefreshTokenRecord(userEntity.id);
 
         const userDto = {
             id: userEntity.id,
@@ -68,7 +90,8 @@ class AuthService {
         const token = this._generateToken(userDto);
         return {
             user: userDto,
-            token
+            token,
+            refreshToken
         };
     }
 
@@ -79,8 +102,6 @@ class AuthService {
 
         const valid = await Password.compare(password, user.password);
         if (!valid) throw new Error('Credenciales inválidas');
-
-
 
         const userDto = {
             name: user.name,
@@ -101,9 +122,12 @@ class AuthService {
         }
 
         const token = this._generateToken(user);
+        // Crear refresh token en BD
+        const refreshToken = await this._createRefreshTokenRecord(user.id);
 
         return {
             token,
+            refreshToken,
             user: userDto
         };
     }
@@ -123,8 +147,48 @@ class AuthService {
 
         // Generamos token con el mismo método
         const token = this._generateToken(user);
+        // Crear refresh token en BD
+        const refreshToken = await this._createRefreshTokenRecord(user.id);
 
-        return { token, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+        return { token, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+    }
+
+    /**
+     * Valida y refresca el JWT usando un refresh token
+     */
+    async refreshAccessToken(userId, refreshToken) {
+        // Validar que el refresh token sea válido
+        const isValid = await this.refreshTokenRepository.validateToken(userId, refreshToken);
+
+        if (!isValid) {
+            throw new Error('Refresh token inválido o expirado');
+        }
+
+        // Obtener usuario
+        const user = await this.userRepository.findById(userId);
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        // Generar nuevo access token
+        const newAccessToken = this._generateToken(user);
+
+        return {
+            token: newAccessToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        };
+    }
+
+    /**
+     * Revoca todos los refresh tokens de un usuario (logout desde todos los dispositivos)
+     */
+    async logoutAllDevices(userId) {
+        await this.refreshTokenRepository.revokeAllForUser(userId);
     }
 }
 module.exports = AuthService;

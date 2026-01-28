@@ -30,14 +30,21 @@
         <span class="loading-text">Cargando...</span>
       </li>
       <li v-else-if="auth.isAuthenticated" class="user-section">
-        <span class="navbar__user">{{ userNameCapitalized }}</span>
+        <span class="navbar__user cursor-pointer hover:text-indigo-600 transition-colors" @click="goToProfile">{{
+          userNameCapitalized }}</span>
         <button @click="logout" class="navbar__logout">Cerrar sesión</button>
       </li>
       <li v-else>
         <router-link to="/login" class="nav-link login-btn">Iniciar sesión</router-link>
       </li>
       <li v-if="auth.isAuthenticated && auth.user?.role === 'Admin'">
-        <router-link to="/admin" class="nav-link admin-link">Panel admin</router-link>
+        <router-link v-if="!isInAdminPanel" to="/admin" class="nav-link admin-link admin-panel-btn"
+          title="Ir al Panel de Administración">
+          🔐 Panel Admin
+        </router-link>
+        <router-link v-else to="/" class="nav-link back-link" title="Volver a la tienda">
+          ↩️ Volver a tienda
+        </router-link>
       </li>
     </ul>
   </nav>
@@ -48,17 +55,22 @@ import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../../store/auth'
 import { useCartStore } from '../../store/cart'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const auth = useAuthStore()
 const cart = useCartStore()
 const menuAbierto = ref(false)
 const router = useRouter()
+const route = useRoute()
 
 const userNameCapitalized = computed(() => {
   return auth.user?.name
     ? auth.user.name.charAt(0).toUpperCase() + auth.user.name.slice(1)
     : ''
+})
+
+const isInAdminPanel = computed(() => {
+  return route.path.startsWith('/admin')
 })
 
 async function logout() {
@@ -69,6 +81,11 @@ async function logout() {
 
   cart.limpiar()
   router.push('/')
+}
+
+function goToProfile() {
+  router.push('/profile')
+  menuAbierto.value = false
 }
 </script>
 
@@ -234,6 +251,25 @@ async function logout() {
 .admin-link:hover {
   background: rgba(255, 193, 7, 0.25);
   border-color: rgba(255, 193, 7, 0.5);
+}
+
+.admin-panel-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: none;
+  font-weight: 600;
+  padding: 0.7rem 1.5rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.admin-panel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+}
+
+.admin-panel-btn::before {
+  display: none;
 }
 
 /* Carrito */

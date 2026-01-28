@@ -13,6 +13,7 @@ describe('AuthService - Unit Tests', () => {
     let authService;
     let mockUserRepository;
     let mockCartRepository;
+    let mockRefreshTokenRepository;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -21,13 +22,21 @@ describe('AuthService - Unit Tests', () => {
         mockUserRepository = {
             findByEmail: jest.fn(),
             create: jest.fn(),
+            findById: jest.fn(),
         };
 
         mockCartRepository = {
             createCart: jest.fn(),
         };
 
-        authService = new AuthService(mockUserRepository, mockCartRepository);
+        mockRefreshTokenRepository = {
+            create: jest.fn(),
+            validateToken: jest.fn(),
+            revoke: jest.fn(),
+            revokeAllForUser: jest.fn(),
+        };
+
+        authService = new AuthService(mockUserRepository, mockCartRepository, mockRefreshTokenRepository);
     });
 
     // -----------------------------
@@ -59,11 +68,20 @@ describe('AuthService - Unit Tests', () => {
                 items: []  // ✅ Agregado
             };
 
+            // Mock: refresh token creado
+            const refreshTokenRecord = {
+                id: 1,
+                userId: 1,
+                token: 'refresh-token-here',
+                expiresAt: new Date()
+            };
+
             // Configurar mocks
             mockUserRepository.findByEmail.mockResolvedValue(null);
             bcrypt.hash.mockResolvedValue(hashedPassword);
             mockUserRepository.create.mockResolvedValue(createdUser);
             mockCartRepository.createCart.mockResolvedValue(createdCart);
+            mockRefreshTokenRepository.create.mockResolvedValue(refreshTokenRecord);
 
             // Ejecutar
             const result = await authService.register(userData);
@@ -79,6 +97,10 @@ describe('AuthService - Unit Tests', () => {
                 roleId: 1,
             });
             expect(mockCartRepository.createCart).toHaveBeenCalledWith(createdUser.id);
+            expect(mockRefreshTokenRepository.create).toHaveBeenCalledWith(
+                createdUser.id,
+                expect.any(Date)
+            );
 
             // Verificación del resultado
             expect(result).toMatchObject({
@@ -92,6 +114,7 @@ describe('AuthService - Unit Tests', () => {
                     }
                 },
                 token: expect.any(String),
+                refreshToken: refreshTokenRecord.token
             });
 
             // Verificar que el token es válido JWT
@@ -107,14 +130,27 @@ describe('AuthService - Unit Tests', () => {
             const credentials = { email: 'test@test.com', password: 'Oasis123!' };
             const user = { id: 1, name: 'Test', email: 'test@test.com', password: 'hashed', role: 1 };
 
+            const refreshTokenRecord = {
+                id: 1,
+                userId: 1,
+                token: 'refresh-token-here',
+                expiresAt: new Date()
+            };
+
             mockUserRepository.findByEmail.mockResolvedValue(user);
             bcrypt.compare.mockResolvedValue(true);
+            mockRefreshTokenRepository.create.mockResolvedValue(refreshTokenRecord);
 
             const result = await authService.login(credentials);
 
             expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(credentials.email);
             expect(bcrypt.compare).toHaveBeenCalledWith(credentials.password, user.password);
+            expect(mockRefreshTokenRepository.create).toHaveBeenCalledWith(
+                user.id,
+                expect.any(Date)
+            );
             expect(result).toHaveProperty('token');
+            expect(result).toHaveProperty('refreshToken', refreshTokenRecord.token);
             expect(result.user).toEqual({
                 name: 'Test',
                 email: 'test@test.com',
@@ -152,15 +188,24 @@ describe('AuthService - Unit Tests', () => {
     describe('Login With Google', () => {
         it('should login existing Google user', async () => {
             const email = 'user@gmail.com';
-            const user = { id: 1, name: 'Google User', email, password: null };
+            const user = { id: 1, name: 'Google User', email, password: null, role: 1 };
+
+            const refreshTokenRecord = {
+                id: 1,
+                userId: 1,
+                token: 'refresh-token-here',
+                expiresAt: new Date()
+            };
 
             mockUserRepository.findByEmail.mockResolvedValue(user);
+            mockRefreshTokenRepository.create.mockResolvedValue(refreshTokenRecord);
 
             const result = await authService.loginWithGoogle({ email });
 
             expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(email);
             expect(mockUserRepository.create).not.toHaveBeenCalled();
             expect(result).toHaveProperty('token');
+            expect(result).toHaveProperty('refreshToken', refreshTokenRecord.token);
             expect(result.user.email).toBe(email);
         });
 
@@ -168,9 +213,17 @@ describe('AuthService - Unit Tests', () => {
             const email = 'newuser@gmail.com';
             const newUser = { id: 2, name: '', email, password: null, role: 1 };
 
+            const refreshTokenRecord = {
+                id: 1,
+                userId: 2,
+                token: 'refresh-token-here',
+                expiresAt: new Date()
+            };
+
             mockUserRepository.findByEmail.mockResolvedValue(null);
             mockUserRepository.create.mockResolvedValue(newUser);
             mockCartRepository.createCart.mockResolvedValue({});
+            mockRefreshTokenRepository.create.mockResolvedValue(refreshTokenRecord);
 
             await authService.loginWithGoogle({ email });
 
@@ -182,15 +235,27 @@ describe('AuthService - Unit Tests', () => {
                 })
             );
             expect(mockCartRepository.createCart).toHaveBeenCalledWith(newUser.id);
+            expect(mockRefreshTokenRepository.create).toHaveBeenCalledWith(
+                newUser.id,
+                expect.any(Date)
+            );
         });
 
         it('Should assign default role (1) to new Google user', async () => {
             const email = 'newgoogle@gmail.com';
             const newUser = { id: 3, email, role: 1 };
 
+            const refreshTokenRecord = {
+                id: 1,
+                userId: 3,
+                token: 'refresh-token-here',
+                expiresAt: new Date()
+            };
+
             mockUserRepository.findByEmail.mockResolvedValue(null);
             mockUserRepository.create.mockResolvedValue(newUser);
             mockCartRepository.createCart.mockResolvedValue({});
+            mockRefreshTokenRepository.create.mockResolvedValue(refreshTokenRecord);
 
             await authService.loginWithGoogle({ email });
 

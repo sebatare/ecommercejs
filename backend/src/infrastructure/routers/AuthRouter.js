@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library')
+const jwt = require('jsonwebtoken');
 const authenticate = require('../../middleware/authenticate')
 const RegisteredEmailError = require('../../domain/errors/auth/RegisteredEmailError');
 const InvalidPasswordError = require('../../domain/errors/auth/InvalidPasswordError');
@@ -18,13 +19,22 @@ function createAuthRouter(authService) {
         async (req, res) => {
             try {
                 // Delegación total al service
-                const { user, token } = await authService.register(req.body);
+                const { user, token, refreshToken } = await authService.register(req.body);
 
                 res.cookie('auth', token, {
                     httpOnly: true,                 // clave
                     secure: process.env.NODE_ENV === 'productionHTTPS',
                     sameSite: 'lax',
                     maxAge: 1000 * 60 * 60 * 24,
+                    path: '/'
+                });
+
+                // Almacenar refresh token en cookie segura
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'productionHTTPS',
+                    sameSite: 'lax',
+                    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
                     path: '/'
                 });
 
@@ -63,7 +73,7 @@ function createAuthRouter(authService) {
             if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
             try {
-                const { token, user } = await authService.login(req.body);
+                const { token, refreshToken, user } = await authService.login(req.body);
 
 
                 res.cookie('auth', token, {
@@ -72,6 +82,15 @@ function createAuthRouter(authService) {
                     sameSite: 'lax',    // ⚠️ Cambiar a 'lax' o 'none'
                     maxAge: 1000 * 60 * 60 * 24, // ✅ 24 horas
                     path: '/'              // ✅ Añadir esto
+                });
+
+                // Almacenar refresh token en cookie segura
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'productionHTTPS',
+                    sameSite: 'lax',
+                    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
+                    path: '/'
                 });
 
                 res.json({
@@ -95,11 +114,27 @@ function createAuthRouter(authService) {
                 audience: process.env.GOOGLE_CLIENT_ID,
             });
             const payload = ticket.getPayload();
-            const { token: appToken, user } = await authService.loginWithGoogle({ email: payload.email });
+            const { token: appToken, refreshToken, user } = await authService.loginWithGoogle({ email: payload.email });
+
+            res.cookie('auth', appToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'productionHTTPS',
+                sameSite: 'lax',
+                maxAge: 1000 * 60 * 60 * 2, // 2 horas
+                path: '/'
+            });
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'productionHTTPS',
+                sameSite: 'lax',
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
+                path: '/'
+            });
+
             res.status(200).json({
                 message: 'Login exitoso',
-                user,
-                token: appToken
+                user
             });
         } catch (error) {
             console.error('Error en google-login:', error);
@@ -112,6 +147,57 @@ function createAuthRouter(authService) {
         res.json({ user: req.user });
     });
 
+    // Endpoint para refrescar el access token usando el refresh token
+    router.post('/refresh', async (req, res) => {
+        try {
+            const refreshToken = req.cookies.refreshToken;
+
+            if (!refreshToken) {
+                return res.status(401).json({ error: 'Refresh token no encontrado' });
+            }
+
+            // Obtener userId desde el JWT expirado o desde la request
+            // Si no tenemos el userId, necesitamos decodificar el refresh token
+            const authToken = req.cookies.auth;
+            let userId;
+
+            if (authToken) {
+                try {
+                    const decoded = jwt.decode(authToken); // Sin validación (está expirado)
+                    userId = decoded?.id;
+                } catch (err) {
+                    // Si no podemos decodificar, devolvemos error
+                    return res.status(401).json({ error: 'Token inválido' });
+                }
+            }
+
+            if (!userId) {
+                return res.status(401).json({ error: 'No se puede determinar el usuario' });
+            }
+
+            // Refrescar el token
+            const { token, user } = await authService.refreshAccessToken(userId, refreshToken);
+
+            // Actualizar la cookie de auth
+            res.cookie('auth', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'productionHTTPS',
+                sameSite: 'lax',
+                maxAge: 1000 * 60 * 60 * 2, // 2 horas
+                path: '/'
+            });
+
+            res.json({
+                user,
+                message: 'Token refrescado exitosamente'
+            });
+
+        } catch (err) {
+            console.error('Error al refrescar token:', err);
+            return res.status(401).json({ error: err.message });
+        }
+    });
+
 
 
     router.post('/logout', (req, res) => {
@@ -121,6 +207,14 @@ function createAuthRouter(authService) {
             sameSite: 'lax',
             path: '/'
         });
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'productionHTTPS',
+            sameSite: 'lax',
+            path: '/'
+        });
+
         return res.status(200).json({ message: 'Logout exitoso' });
     });
 

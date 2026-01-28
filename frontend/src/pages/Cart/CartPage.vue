@@ -29,26 +29,22 @@
         <div class="cart-items">
           <div v-for="item in cart.items" :key="item.id" class="cart-item">
             <div class="item-image">
-              <img :src="item.imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80'" :alt="item.productName" />
+              <img :src="item.imageUrl || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80'"
+                :alt="item.productName" />
             </div>
 
             <div class="item-details">
-              <h3 class="item-name">{{ item.productName }}</h3>
-              <p class="item-price">${{item.price}}</p>
+              <h3 class="item-name cursor-pointer hover:text-indigo-600 transition-colors"
+                @click="goToProduct(item.productId)">{{ item.productName }}</h3>
+              <p class="item-price">${{ item.price }}</p>
             </div>
 
             <div class="item-quantity">
-              <button 
-                @click="decrementar(item.productId)" 
-                class="qty-btn"
-              >
+              <button @click="decrementar(item.productId)" class="qty-btn">
                 <Icon icon="mdi:minus" width="18" />
               </button>
               <div class="qty-display">{{ item.quantity }}</div>
-              <button 
-                @click="incrementar(item.productId)" 
-                class="qty-btn"
-              >
+              <button @click="incrementar(item.productId)" class="qty-btn">
                 <Icon icon="mdi:plus" width="18" />
               </button>
             </div>
@@ -58,11 +54,7 @@
               <p class="subtotal-amount">${{ (Number(item.price) * item.quantity).toFixed(2) }}</p>
             </div>
 
-            <button 
-              @click="eliminar(item.productId)" 
-              class="remove-btn"
-              title="Eliminar producto"
-            >
+            <button @click="eliminar(item.productId)" class="remove-btn" title="Eliminar producto">
               <Icon icon="mdi:trash-can-outline" width="22" />
             </button>
           </div>
@@ -72,7 +64,7 @@
         <div class="cart-summary">
           <div class="summary-card">
             <h2>Resumen del pedido</h2>
-            
+
             <div class="summary-row">
               <span>Subtotal ({{ cart.cantidadTotal }} items)</span>
               <span>${{ cart.total.toFixed(2) }}</span>
@@ -90,16 +82,12 @@
               <span class="total-amount">${{ cart.total.toFixed(2) }}</span>
             </div>
 
-            <button class="checkout-btn" >
+            <button class="checkout-btn">
               <Icon icon="mdi:lock-outline" width="20" />
               Proceder al pago
             </button>
 
-            <button 
-              @click="limpiarCarrito" 
-              class="clear-btn"
-              
-            >
+            <button @click="limpiarCarrito" class="clear-btn">
               <Icon icon="mdi:delete-outline" width="20" />
               Vaciar carrito
             </button>
@@ -118,9 +106,11 @@
 
 <script setup lang="ts">
 import { useCartStore } from '../../store/cart'
+import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
 const cart = useCartStore()
+const router = useRouter()
 
 const incrementar = async (productId: number) => {
   await cart.incrementar(productId)
@@ -138,6 +128,10 @@ const limpiarCarrito = async () => {
   if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
     await cart.limpiar()
   }
+}
+
+const goToProduct = (productId: number) => {
+  router.push(`/products/${productId}`)
 }
 </script>
 
@@ -558,7 +552,9 @@ const limpiarCarrito = async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-overlay p {

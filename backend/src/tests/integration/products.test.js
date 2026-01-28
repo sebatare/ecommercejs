@@ -65,7 +65,6 @@ describe('Products API - Integration', () => {
                 .set('Authorization', `Bearer ${token}`)
                 .send(newProduct)
                 .expect(201);
-            console.log("Created product response body:", res.body);
 
             expect(res.body).toHaveProperty('id');
             expect(res.body.name).toBe(newProduct.name);

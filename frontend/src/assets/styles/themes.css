@@ -1,0 +1,384 @@
+/**
+ * Sistema de Estilos Global
+ * Basado en un tema único bien organizado
+ */
+
+:root {
+  /* ===========================
+     COLORES
+     =========================== */
+  
+  /* Colores Primarios */
+  --color-primary: #667eea;
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4f46e5;
+  
+  /* Color Secundario */
+  --color-secondary: #764ba2;
+  
+  /* Colores Semánticos */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* Fondos */
+  --color-bg: #ffffff;
+  --color-bg-light: #f9fafb;
+  --color-bg-dark: #f3f4f6;
+  
+  /* Texto */
+  --color-text: #2d2d2d;
+  --color-text-light: #6b7280;
+  
+  /* Bordes */
+  --color-border: #e5e7eb;
+
+  /* ===========================
+     ESPACIADO
+     =========================== */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* ===========================
+     BORDES REDONDEADOS
+     =========================== */
+  --border-radius-sm: 6px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+
+  /* ===========================
+     SOMBRAS
+     =========================== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  /* ===========================
+     TRANSICIONES
+     =========================== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+
+  /* ===========================
+     TIPOGRAFÍA
+     =========================== */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'Courier New', monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+}
+
+/* Clases de utilidad para usar colores del tema */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - COLORES DE TEXTO
+   =========================== */
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-info {
+  color: var(--color-info);
+}
+
+.text-default {
+  color: var(--color-text);
+}
+
+.text-muted {
+  color: var(--color-text-light);
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - FONDOS
+   =========================== */
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-primary-light {
+  background-color: var(--color-primary-light);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.bg-success {
+  background-color: var(--color-success);
+}
+
+.bg-danger {
+  background-color: var(--color-danger);
+}
+
+.bg-warning {
+  background-color: var(--color-warning);
+}
+
+.bg-info {
+  background-color: var(--color-info);
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - BORDES
+   =========================== */
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-secondary {
+  border-color: var(--color-secondary);
+}
+
+.border-success {
+  border-color: var(--color-success);
+}
+
+.border-danger {
+  border-color: var(--color-danger);
+}
+
+.border-warning {
+  border-color: var(--color-warning);
+}
+
+.border-info {
+  border-color: var(--color-info);
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - BOTONES
+   =========================== */
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-secondary:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-success {
+  background-color: var(--color-success);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-success:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - BADGES
+   =========================== */
+
+.badge-primary {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--color-info);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - TARJETAS
+   =========================== */
+
+.card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - GRADIENTES
+   =========================== */
+
+.gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, var(--color-success), #059669);
+  color: white;
+}
+
+.gradient-danger {
+  background: linear-gradient(135deg, var(--color-danger), #dc2626);
+  color: white;
+}
+
+/* ===========================
+   CLASES DE UTILIDAD - INPUTS
+   =========================== */
+
+.input-primary {
+  background-color: var(--color-bg-light);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  font-family: var(--font-family-base);
+  color: var(--color-text);
+  transition: all var(--transition-base);
+}
+
+.input-primary:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-primary::placeholder {
+  color: var(--color-text-light);
+}

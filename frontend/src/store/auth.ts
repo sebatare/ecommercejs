@@ -111,19 +111,34 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Refresca el token de acceso usando el refresh token
+     * Se llama automáticamente cuando el token expira (401)
+     */
+    async refreshAccessToken(): Promise<void> {
+      try {
+        const { data } = await api.post<AuthResponse>('/auth/refresh')
+        this.user = data.user
+        this.error = null
+      } catch (error: any) {
+        console.error('Error refrescando token:', error)
+        // Si el refresh falla, logout del usuario
+        this.user = null
+        throw error
+      }
+    },
 
     async verificarTokenConBackend(): Promise<void> {
-  try {
-    const { data } = await api.get('/auth/me')
-    this.user = data.user
-  } catch (error) {
-    this.user = null
-    console.log('No hay sesión activa')
-  }
-  finally {
-    this.loading = false
-  }
-},
+      try {
+        const { data } = await api.get('/auth/me')
+        this.user = data.user
+      } catch (error) {
+        this.user = null
+        console.log('No hay sesión activa')
+      } finally {
+        this.loading = false
+      }
+    },
 
 
     clearError(): void {

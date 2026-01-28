@@ -2,15 +2,15 @@
     <div
         class="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
         <!-- Image Container -->
-        <div class="relative pt-[100%] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-            <img :src="product.imageUrl || 'placeholder.jpg'"
-                :alt="product.name"
+        <div class="relative pt-[100%] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 cursor-pointer"
+            @click="goToDetails">
+            <img :src="product.imageUrl || 'placeholder.jpg'" :alt="product.name"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
 
             <!-- Overlay con botón -->
             <div
                 class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-6">
-                <button @click="$emit('quick-view', product)"
+                <button @click.stop="goToDetails"
                     class="bg-white text-indigo-600 px-6 py-3 rounded-full font-semibold text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:bg-gray-50 hover:scale-105">
                     Ver detalles
                 </button>
@@ -23,7 +23,7 @@
             </div>
 
             <!-- Botón de favorito -->
-            <button @click="toggleFavorite"
+            <button @click.stop="toggleFavorite"
                 :class="isFavorite ? 'opacity-100 text-red-500' : 'opacity-0 group-hover:opacity-100 text-gray-700'"
                 class="absolute top-3 right-3 bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-red-50 hover:text-red-600 hover:scale-110 z-10">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -46,8 +46,8 @@
             </div>
 
             <!-- Nombre del producto -->
-            <h3
-                class="text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-indigo-600 transition-colors duration-300">
+            <h3 class="text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-indigo-600 transition-colors duration-300 cursor-pointer"
+                @click="goToDetails">
                 {{ product.name }}
             </h3>
 
@@ -79,7 +79,7 @@
                     </span>
                 </div>
 
-                <button @click="$emit('add-to-cart', product)"
+                <button @click.stop="$emit('add-to-cart', product)"
                     class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-3 rounded-full font-semibold text-sm flex items-center gap-2 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 active:scale-95">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -96,6 +96,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Product } from '../types/index'
 
 interface Props {
@@ -103,10 +104,10 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const router = useRouter()
 
 defineEmits<{
     'add-to-cart': [product: Product]
-    'quick-view': [product: Product]
 }>()
 
 const isFavorite = ref(false)
@@ -122,5 +123,9 @@ const finalPrice = computed(() => {
 
 const toggleFavorite = () => {
     isFavorite.value = !isFavorite.value
+}
+
+const goToDetails = () => {
+    router.push(`/products/${props.product.id}`)
 }
 </script>

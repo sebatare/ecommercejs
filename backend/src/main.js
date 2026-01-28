@@ -11,6 +11,7 @@ const ProductService = require('./application/services/ProductService');
 const ProductRepository = require('./infrastructure/repositories/ProductRepository');
 const AuthService = require('./application/services/AuthService');
 const UserRepository = require('./infrastructure/repositories/UserRepository');
+const RefreshTokenRepository = require('./infrastructure/repositories/RefreshTokenRepository');
 const RoleService = require('./application/services/RoleService');
 const RoleRepository = require('./infrastructure/repositories/RoleRepository');
 const CategoryRepository = require('./infrastructure/repositories/CategoryRepository');
@@ -56,7 +57,7 @@ app.use('/api/products', createProductRouter(
 ));
 
 app.use('/api/auth', createAuthRouter(
-  new AuthService(new UserRepository(), new CartRepository())
+  new AuthService(new UserRepository(), new CartRepository(), new RefreshTokenRepository())
 ));
 
 app.use('/api/users', createUserRouter(

@@ -8,8 +8,7 @@ Tests:
     - Registro de usuario fallido - datos inválidos
     
     - Login de usuario
-
-
+    - Refresh token
 */
 describe('Auth API - Integration Tests', () => {
 
@@ -41,6 +40,11 @@ describe('Auth API - Integration Tests', () => {
             expect(res.headers['set-cookie']).toBeDefined();
             expect(
                 res.headers['set-cookie'].some(c => c.startsWith('auth='))
+            ).toBe(true);
+
+            // Refresh token cookie seteada
+            expect(
+                res.headers['set-cookie'].some(c => c.startsWith('refreshToken='))
             ).toBe(true);
 
         });
@@ -111,6 +115,11 @@ describe('Auth API - Integration Tests', () => {
             expect(
                 res.headers['set-cookie'].some(c => c.startsWith('auth='))
             ).toBe(true);
+
+            // Refresh token cookie presente
+            expect(
+                res.headers['set-cookie'].some(c => c.startsWith('refreshToken='))
+            ).toBe(true);
         });
 
         // Login con contraseña incorrecta
@@ -161,7 +170,7 @@ describe('Auth API - Integration Tests', () => {
     });
 
     describe('POST /api/auth/logout', () => {
-        
+
         it('should logout user and clear auth cookie', async () => {
             const agent = request.agent(app);
 
@@ -183,6 +192,122 @@ describe('Auth API - Integration Tests', () => {
             expect(
                 cookies.some(c => c.startsWith('auth=;'))
             ).toBe(true);
+
+            // Verificar que la cookie 'refreshToken' fue borrada
+            expect(
+                cookies.some(c => c.startsWith('refreshToken=;'))
+            ).toBe(true);
+        });
+    });
+
+    // ============================
+    // REFRESH TOKEN TESTS
+    // ============================
+    describe('POST /api/auth/refresh', () => {
+
+        it('should refresh access token with valid refresh token', async () => {
+            const agent = request.agent(app);
+            const testEmail = `refreshuser${Date.now()}@test.com`;
+
+            // Primero registrar el usuario
+            const registerRes = await request(app)
+                .post('/api/auth/register')
+                .send({
+                    name: 'Refresh User',
+                    email: testEmail,
+                    password: 'Password123!'
+                });
+
+            if (registerRes.status !== 201) {
+                console.error('Register failed:', registerRes.status, registerRes.body);
+                return;
+            }
+
+            // Usar el agent para mantener las cookies
+            const loginRes = await agent
+                .post('/api/auth/login')
+                .send({
+                    email: testEmail,
+                    password: 'Password123!'
+                });
+
+            expect(loginRes.status).toBe(200);
+
+            // Esperar un bit para que sea diferente
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Refrescar token
+            const refreshRes = await agent
+                .post('/api/auth/refresh');
+
+            expect(refreshRes.status).toBe(200);
+            expect(refreshRes.body).toHaveProperty('user.email', testEmail);
+            expect(refreshRes.body).toHaveProperty('message', 'Token refrescado exitosamente');
+
+            // Verificar que la cookie de auth fue actualizada
+            const newAuthCookie = refreshRes.headers['set-cookie']?.find(c => c.startsWith('auth='));
+            expect(newAuthCookie).toBeDefined();
+        });
+
+        it('should return 401 if refresh token is missing', async () => {
+            const res = await request(app)
+                .post('/api/auth/refresh');
+
+            expect(res.status).toBe(401);
+            expect(res.body).toHaveProperty('error', 'Refresh token no encontrado');
+        });
+
+        it('should return 401 if refresh token is invalid', async () => {
+            const agent = request.agent(app);
+
+            // Configurar una cookie de refresh token inválida
+            agent.set('Cookie', 'refreshToken=invalid.token.here');
+
+            const res = await agent
+                .post('/api/auth/refresh');
+
+            expect(res.status).toBe(401);
+            expect(res.body).toHaveProperty('error');
+        });
+
+        it('should allow user to continue accessing protected routes after refresh', async () => {
+            const agent = request.agent(app);
+            const testEmail = `protecteduser${Date.now()}@test.com`;
+
+            // Primero registrar el usuario
+            await request(app)
+                .post('/api/auth/register')
+                .send({
+                    name: 'Protected User',
+                    email: testEmail,
+                    password: 'Password123!'
+                });
+
+            // Login
+            const loginRes = await agent
+                .post('/api/auth/login')
+                .send({
+                    email: testEmail,
+                    password: 'Password123!'
+                });
+
+            expect(loginRes.status).toBe(200);
+
+            // Acceder a ruta protegida
+            let meRes = await agent.get('/api/auth/me');
+            expect(meRes.status).toBe(200);
+            expect(meRes.body.user.email).toBe(testEmail);
+
+            // Refrescar token
+            const refreshRes = await agent
+                .post('/api/auth/refresh');
+
+            expect(refreshRes.status).toBe(200);
+
+            // Acceder a ruta protegida nuevamente (con nuevo token)
+            meRes = await agent.get('/api/auth/me');
+            expect(meRes.status).toBe(200);
+            expect(meRes.body.user.email).toBe(testEmail);
         });
     });
 });

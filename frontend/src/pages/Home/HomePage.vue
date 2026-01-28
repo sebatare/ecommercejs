@@ -3,6 +3,52 @@
         <!-- Carrusel Hero -->
         <HeroCarousel />
 
+        <!-- Buscador de Productos -->
+        <section class="bg-white border-b border-gray-200 sticky top-20 z-40 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="relative max-w-2xl mx-auto">
+                    <!-- Input de búsqueda -->
+                    <div class="relative">
+                        <input v-model="searchQuery" type="text" placeholder="🔍 Busca un producto..."
+                            @input="filterProducts" @focus="showSuggestions = true" @blur="hideSuggestions"
+                            class="w-full px-5 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-indigo-600 transition-colors text-gray-900 placeholder-gray-500" />
+                        <button v-if="searchQuery" @click="clearSearch"
+                            class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- Sugerencias de productos -->
+                    <div v-if="showSuggestions && searchQuery"
+                        class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-96 overflow-y-auto">
+                        <div v-if="suggestedProducts.length > 0" class="p-2">
+                            <div v-for="product in suggestedProducts.slice(0, 8)" :key="product.id"
+                                @click="goToProduct(product)"
+                                class="flex items-center gap-3 p-3 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors group">
+                                <img :src="product.imageUrl" :alt="product.name" class="w-10 h-10 rounded object-cover">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 truncate">
+                                        {{ product.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        ${{ product.price.toFixed(2) }}
+                                    </p>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div v-else class="p-6 text-center text-gray-500">
+                            <p>No se encontraron productos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Sección de Top Más Vendidos -->
         <section class="max-w-7xl mx-auto px-4 py-16">
             <div class="flex items-center gap-3 mb-8">
@@ -91,7 +137,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../../utils/api-public'
 import type { Product, Category } from '../../types/index'
 import { useCartStore } from '../../store/cart'
@@ -100,13 +147,49 @@ import ProductCard from '../../components/ProductCard.vue'
 import SkeletonCard from '../../components/SkeletonCard.vue'
 import ProductsList from '../../components/ProductsList.vue'
 
+const router = useRouter()
 const products = ref<Product[]>([])
 const categorias = ref<Category[]>([])
 const productsOnSale = ref<Product[]>([])
 const loadingProducts = ref(true)
 const loadingTopProducts = ref(true)
+const searchQuery = ref('')
+const showSuggestions = ref(false)
 
 const cart = useCartStore()
+
+const suggestedProducts = computed(() => {
+    if (!searchQuery.value.trim()) return []
+
+    const query = searchQuery.value.toLowerCase()
+    return products.value.filter(product =>
+        product.name.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query)
+    )
+})
+
+const filterProducts = () => {
+    // Mostrar sugerencias mientras escribe
+    showSuggestions.value = searchQuery.value.length > 0
+}
+
+const clearSearch = () => {
+    searchQuery.value = ''
+    showSuggestions.value = false
+}
+
+const hideSuggestions = () => {
+    // Pequeño delay para permitir click en sugerencias
+    setTimeout(() => {
+        showSuggestions.value = false
+    }, 200)
+}
+
+const goToProduct = (product: Product) => {
+    router.push(`/products/${product.id}`)
+    searchQuery.value = ''
+    showSuggestions.value = false
+}
 
 onMounted(async () => {
     try {

@@ -7,6 +7,7 @@ const pool = require('../../infrastructure/db/pool');
 
 async function cleanUserGeneratedData() {
   await pool.query(`
+    DELETE FROM refresh_tokens;
     DELETE FROM cart_items;
     DELETE FROM carts;
     DELETE FROM order_items;

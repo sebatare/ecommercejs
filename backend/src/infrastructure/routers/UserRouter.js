@@ -40,7 +40,6 @@ function createUserRouter(userService) {
     // Se mantiene el middleware para seguridad
     router.put('/:id', authenticate, authorize('admin'), async (req, res, next) => {
         try {
-            console.log("ROUT PUT USER", req.body)
             const userId = parseInt(req.params.id);
             const updatedData = req.body;
             const currentUser = req.user;

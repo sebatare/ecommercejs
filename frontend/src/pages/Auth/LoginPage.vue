@@ -76,8 +76,16 @@ const handleSuccess = async (response: any) => {
             token: credential,
         });
         auth.loginWithGoogle(res.data);
-    } catch (error) {
-        console.error('Error al validar en el backend', error);
+
+        // Navegar después del login exitoso
+        if (auth.user?.role === 'admin') {
+            router.push('/admin')
+        } else {
+            router.push('/')
+        }
+    } catch (err) {
+        console.error('Error al validar en el backend', err);
+        error.value = 'Error al iniciar sesión con Google'
     }
 };
 
@@ -88,10 +96,12 @@ const handleError = () => {
 
 
 const onSubmit = async () => {
+    error.value = ''
     try {
         await auth.login({ email: email.value, password: password.value })
 
-        if (auth.user?.role === 'Admin') {
+        // Navegar basado en el rol del usuario
+        if (auth.user?.role === 'admin') {
             router.push('/admin')
         } else {
             router.push('/')
@@ -103,12 +113,12 @@ const onSubmit = async () => {
 
 const loginWithFacebook = () => {
     // Implementar OAuth con Facebook
-    
+
     // window.location.href = 'TU_BACKEND_URL/auth/facebook'
 }
 
 const loginWithX = () => {
-    
+
 }
 </script>
 
