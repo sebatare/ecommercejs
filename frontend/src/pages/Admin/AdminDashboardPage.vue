@@ -65,32 +65,50 @@
                 </h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Total Ventas -->
-                    <div class="card" :style="{ borderTop: `4px solid var(--color-success)` }">
+                    <!-- Total Ventas - Clickeable -->
+                    <div @click="selectedChart = 'sales'" class="card cursor-pointer hover:shadow-xl transition-all"
+                        :style="{ borderTop: `4px solid var(--color-success)` }">
                         <p class="text-sm font-semibold opacity-75 mb-2">Total Ventas</p>
                         <p class="text-3xl font-bold" :style="{ color: 'var(--color-success)' }">$45,230</p>
                         <p class="text-xs mt-3" :style="{ color: 'var(--color-success)' }">+15% vs mes anterior</p>
                     </div>
 
-                    <!-- Órdenes Pendientes -->
-                    <div class="card" :style="{ borderTop: `4px solid var(--color-warning)` }">
+                    <!-- Órdenes Pendientes - Clickeable -->
+                    <div @click="selectedChart = 'orders'" class="card cursor-pointer hover:shadow-xl transition-all"
+                        :style="{ borderTop: `4px solid var(--color-warning)` }">
                         <p class="text-sm font-semibold opacity-75 mb-2">Órdenes Pendientes</p>
                         <p class="text-3xl font-bold" :style="{ color: 'var(--color-warning)' }">18</p>
                         <p class="text-xs mt-3" :style="{ color: 'var(--color-warning)' }">Requieren atención</p>
                     </div>
 
-                    <!-- Productos sin Stock -->
-                    <div class="card" :style="{ borderTop: `4px solid var(--color-danger)` }">
+                    <!-- Productos sin Stock - Clickeable -->
+                    <div @click="selectedChart = 'products'" class="card cursor-pointer hover:shadow-xl transition-all"
+                        :style="{ borderTop: `4px solid var(--color-danger)` }">
                         <p class="text-sm font-semibold opacity-75 mb-2">Sin Stock</p>
                         <p class="text-3xl font-bold" :style="{ color: 'var(--color-danger)' }">32</p>
                         <p class="text-xs mt-3" :style="{ color: 'var(--color-danger)' }">Productos agotados</p>
                     </div>
 
-                    <!-- Nuevos Usuarios -->
-                    <div class="card" :style="{ borderTop: `4px solid var(--color-info)` }">
+                    <!-- Nuevos Usuarios - Clickeable -->
+                    <div @click="selectedChart = 'users'" class="card cursor-pointer hover:shadow-xl transition-all"
+                        :style="{ borderTop: `4px solid var(--color-info)` }">
                         <p class="text-sm font-semibold opacity-75 mb-2">Nuevos Usuarios</p>
                         <p class="text-3xl font-bold" :style="{ color: 'var(--color-info)' }">89</p>
                         <p class="text-xs mt-3" :style="{ color: 'var(--color-info)' }">Este mes</p>
+                    </div>
+                </div>
+
+                <!-- Modal de Gráficos -->
+                <div v-if="selectedChart" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div class="card max-w-2xl w-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold">{{ getChartTitle() }}</h3>
+                            <button @click="selectedChart = null"
+                                class="text-2xl font-bold text-gray-400 hover:text-gray-600">✕</button>
+                        </div>
+                        <p class="text-gray-500 text-center py-8">
+                            Aquí iría el gráfico real (API).
+                        </p>
                     </div>
                 </div>
             </div>
@@ -114,8 +132,20 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
+
+type Chart = 'sales' | 'products' | 'users' | 'orders'
+const selectedChart = ref<Chart | null>(null)
+
+const getChartTitle = () =>
+({
+    sales: 'Ventas',
+    products: 'Productos',
+    users: 'Usuarios',
+    orders: 'Órdenes'
+}[selectedChart.value!])
 </script>
 
 <style scoped>

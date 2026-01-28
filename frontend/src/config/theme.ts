@@ -6,31 +6,31 @@
 export const appTheme = {
   // Colores principales
   colors: {
-    // Primarios
-    primary: '#667eea',
-    primaryLight: '#818cf8',
-    primaryDark: '#4f46e5',
+    // Primarios - Violeta pastel suave
+    primary: '#a78bfa',
+    primaryLight: '#ddd6fe',
+    primaryDark: '#7c3aed',
     
-    // Secundarios
-    secondary: '#764ba2',
+    // Secundarios - Rosa pastel suave
+    secondary: '#f472b6',
     
-    // Semánticos
-    success: '#10b981',
-    danger: '#ef4444',
-    warning: '#f59e0b',
-    info: '#3b82f6',
+    // Semánticos - Colores pastel elegantes
+    success: '#86efac',
+    danger: '#fca5a5',
+    warning: '#fcd34d',
+    info: '#7dd3fc',
     
-    // Fondos
+    // Fondos - Tema claro limpio
     bg: '#ffffff',
-    bgLight: '#f9fafb',
-    bgDark: '#f3f4f6',
+    bgLight: '#f8fafc',
+    bgDark: '#f1f5f9',
     
-    // Texto
-    text: '#2d2d2d',
-    textLight: '#6b7280',
+    // Texto - Oscuro para fondo claro
+    text: '#0f172a',
+    textLight: '#64748b',
     
     // Bordes
-    border: '#e5e7eb',
+    border: '#e2e8f0',
   },
 
   // Espaciado

@@ -8,31 +8,31 @@
      COLORES
      =========================== */
   
-  /* Colores Primarios */
-  --color-primary: #667eea;
-  --color-primary-light: #818cf8;
-  --color-primary-dark: #4f46e5;
+  /* Colores Primarios - Violeta pastel suave */
+  --color-primary: #a78bfa;
+  --color-primary-light: #ddd6fe;
+  --color-primary-dark: #7c3aed;
   
-  /* Color Secundario */
-  --color-secondary: #764ba2;
+  /* Color Secundario - Rosa pastel suave */
+  --color-secondary: #f472b6;
   
-  /* Colores Semánticos */
-  --color-success: #10b981;
-  --color-danger: #ef4444;
-  --color-warning: #f59e0b;
-  --color-info: #3b82f6;
+  /* Colores Semánticos - Colores pastel elegantes */
+  --color-success: #86efac;
+  --color-danger: #fca5a5;
+  --color-warning: #fcd34d;
+  --color-info: #7dd3fc;
   
-  /* Fondos */
+  /* Fondos - Tema claro limpio */
   --color-bg: #ffffff;
-  --color-bg-light: #f9fafb;
-  --color-bg-dark: #f3f4f6;
+  --color-bg-light: #f8fafc;
+  --color-bg-dark: #f1f5f9;
   
-  /* Texto */
-  --color-text: #2d2d2d;
-  --color-text-light: #6b7280;
+  /* Texto - Oscuro para fondo claro */
+  --color-text: #0f172a;
+  --color-text-light: #64748b;
   
   /* Bordes */
-  --color-border: #e5e7eb;
+  --color-border: #e2e8f0;
 
   /* ===========================
      ESPACIADO
@@ -356,6 +356,13 @@
 .gradient-danger {
   background: linear-gradient(135deg, var(--color-danger), #dc2626);
   color: white;
+}
+
+.gradient-title {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* ===========================

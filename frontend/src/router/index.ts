@@ -22,7 +22,7 @@ const routes = [
   { path: '/profile', component: UserProfilePage, meta: { requiresAuth: true } },
   { path: '/admin', component: AdminDashboardPage, meta: { requiresAdmin: true } },
   { path: '/admin/dashboard', component: AdminDashboardPage, meta: { requiresAdmin: true } },
-  { path: '/admin/home', component: HomeAdminPage, meta: { requiresAdmin: true } },
+  { path: '/admin/home', component: AdminDashboardPage, meta: { requiresAdmin: true } },
   { path: '/admin/products', component: ProductsAdminPage, meta: { requiresAdmin: true } },
   { path: '/admin/roles', component: RolesAdminPage, meta: { requiresAdmin: true } },
   { path: '/admin/users', component: UsersAdminPage, meta: { requiresAdmin: true } },

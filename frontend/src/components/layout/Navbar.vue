@@ -29,10 +29,10 @@
       <li v-if="auth.isAuthenticated && auth.isAdmin">
         <router-link v-if="!isInAdminPanel" to="/admin/home" class="nav-link admin-link admin-panel-btn"
           title="Ir al Panel de Administración">
-          🔐 Panel Admin
+          Panel Admin
         </router-link>
         <router-link v-else to="/" class="nav-link back-link" title="Volver a la tienda">
-          ↩️ Volver a tienda
+          Volver a tienda
         </router-link>
       </li>
 
@@ -101,12 +101,12 @@ function goToProfile() {
   padding: 1rem 3rem;
   height: 80px;
 
-  /* Glassmorphism effect */
-  background: rgba(255, 255, 255, 0.75);
+  /* Glassmorphism effect - Tema claro */
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+  box-shadow: 0 4px 24px rgba(167, 139, 250, 0.08);
 
   transition: all 0.3s ease;
 }
@@ -120,14 +120,14 @@ function goToProfile() {
   height: 1px;
   background: linear-gradient(90deg,
       transparent 0%,
-      rgba(102, 126, 234, 0.3) 50%,
+      rgba(167, 139, 250, 0.2) 50%,
       transparent 100%);
 }
 
 .navbar__logo a {
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -148,7 +148,7 @@ function goToProfile() {
   align-items: center;
   width: 40px;
   height: 40px;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(167, 139, 250, 0.1);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -157,14 +157,14 @@ function goToProfile() {
 }
 
 .navbar__toggle:hover {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(167, 139, 250, 0.2);
 }
 
 .navbar__toggle span {
   display: block;
   width: 24px;
   height: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
   border-radius: 2px;
   transition: all 0.3s ease-in-out;
 }
@@ -196,7 +196,7 @@ function goToProfile() {
 
 .nav-link {
   padding: 0.6rem 1.2rem;
-  color: #2d2d2d;
+  color: #64748b;
   text-decoration: none;
   font-weight: 500;
   border-radius: 10px;
@@ -211,14 +211,14 @@ function goToProfile() {
   left: 50%;
   width: 0;
   height: 2px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
   transition: all 0.3s ease;
   transform: translateX(-50%);
 }
 
 .nav-link:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.08);
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
 }
 
 .nav-link:hover::before {
@@ -226,17 +226,17 @@ function goToProfile() {
 }
 
 .login-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
   color: white !important;
   font-weight: 600;
   padding: 0.7rem 1.5rem;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2);
 }
 
 .login-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 6px 16px rgba(167, 139, 250, 0.3);
+  background: linear-gradient(135deg, #f472b6 0%, #a78bfa 100%);
 }
 
 .login-btn::before {
@@ -244,29 +244,37 @@ function goToProfile() {
 }
 
 .admin-link {
-  background: rgba(255, 193, 7, 0.15);
-  color: #d68900 !important;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: rgba(77, 77, 77, 0.15);
+  color: #5e5e5e !important;
+
 }
 
 .admin-link:hover {
-  background: rgba(255, 193, 7, 0.25);
-  border-color: rgba(255, 193, 7, 0.5);
+  background: rgba(32, 32, 32, 0.353);
+  color:#131313 !important; 
 }
 
 .admin-panel-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  color: white !important;
-  border: none;
-  font-weight: 600;
-  padding: 0.7rem 1.5rem;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-.admin-panel-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+.admin-panel-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #f472b6 0%, #a78bfa 100%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  z-index: 0;
+}
+
+.admin-panel-btn:hover::before {
+  opacity: 1;
+}
+
+.admin-panel-btn {
+  z-index: 1;
 }
 
 .admin-panel-btn::before {
@@ -286,17 +294,17 @@ function goToProfile() {
 .cart-icon-wrapper {
   position: relative;
   padding: 0.6rem;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(167, 139, 250, 0.1);
   border-radius: 10px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #667eea;
+  color: #a78bfa;
 }
 
 .cart-icon-wrapper:hover {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(167, 139, 250, 0.2);
   transform: scale(1.05);
 }
 
@@ -304,7 +312,7 @@ function goToProfile() {
   position: absolute;
   top: -6px;
   right: -6px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background: linear-gradient(135deg, #f87171 0%, #fb7185 100%);
   color: white;
   font-size: 0.7rem;
   padding: 3px 7px;
@@ -315,7 +323,7 @@ function goToProfile() {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 2px 8px rgba(248, 113, 113, 0.4);
   animation: pulse 2s infinite;
 }
 
@@ -337,21 +345,21 @@ function goToProfile() {
   align-items: center;
   gap: 0.8rem;
   padding: 0.5rem 1rem;
-  background: rgba(102, 126, 234, 0.08);
+  background: rgba(124, 58, 237, 0.08);
   border-radius: 12px;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.2);
 }
 
 .navbar__user {
   font-weight: 600;
-  color: #667eea;
+  color: #a78bfa;
   font-size: 0.95rem;
 }
 
 .navbar__logout {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  color: #667eea;
+  background: rgba(209, 148, 205, 0.189);
+  border: none;
+  color: #a78bfa;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -403,7 +411,7 @@ function goToProfile() {
     top: 70px;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     padding: 1.5rem;
@@ -413,8 +421,8 @@ function goToProfile() {
     pointer-events: none;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 
   .navbar__links.open {
